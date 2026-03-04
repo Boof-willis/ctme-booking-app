@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarSlot, CalendarDay } from '@/types/survey';
 import { FALLBACK_EMAIL } from '@/lib/constants';
 
 interface SlotPickerProps {
-  timezone: string;
+  calendarTimezone: string;
   onSelect: (slot: CalendarSlot) => void;
   onConfirm: () => void;
   selectedSlot: CalendarSlot | null;
@@ -14,21 +14,39 @@ interface SlotPickerProps {
   bookingError: string | null;
 }
 
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr + 'T00:00:00');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  if (date.getTime() === today.getTime()) return 'Today';
-  if (date.getTime() === tomorrow.getTime()) return 'Tomorrow';
+const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
+  { value: 'Pacific/Honolulu', label: 'Hawaii (HT)' },
+  { value: 'America/Anchorage', label: 'Alaska (AKT)' },
+  { value: 'America/Los_Angeles', label: 'Pacific (PT)' },
+  { value: 'America/Denver', label: 'Mountain (MT)' },
+  { value: 'America/Chicago', label: 'Central (CT)' },
+  { value: 'America/New_York', label: 'Eastern (ET)' },
+  { value: 'America/Halifax', label: 'Atlantic (AT)' },
+  { value: 'Europe/London', label: 'London (GMT/BST)' },
+  { value: 'Europe/Berlin', label: 'Central Europe (CET)' },
+  { value: 'Australia/Sydney', label: 'Sydney (AEST)' },
+  { value: 'Pacific/Auckland', label: 'New Zealand (NZST)' },
+];
 
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
+function toDateKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function getBusinessDayLimit(businessDays: number): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  let count = 0;
+  while (count < businessDays) {
+    d.setDate(d.getDate() + 1);
+    const dow = d.getDay();
+    if (dow !== 0 && dow !== 6) count++;
+  }
+  return d;
 }
 
 function formatTime(isoString: string, tz: string): string {
@@ -51,19 +69,17 @@ function getTimezoneAbbr(tz: string): string {
   }
 }
 
-function buildDateRange(offsetDays: number, rangeDays: number) {
-  const start = new Date();
-  start.setDate(start.getDate() + offsetDays);
-  const end = new Date(start);
-  end.setDate(end.getDate() + rangeDays);
-  return {
-    startDate: start.toISOString().split('T')[0],
-    endDate: end.toISOString().split('T')[0],
-  };
+function formatSelectedDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
 }
 
 export default function SlotPicker({
-  timezone,
+  calendarTimezone,
   onSelect,
   onConfirm,
   selectedSlot,
@@ -73,53 +89,138 @@ export default function SlotPicker({
   const [days, setDays] = useState<CalendarDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [daysLoaded, setDaysLoaded] = useState(5);
-
-  const fetchSlots = useCallback(
-    async (offsetDays: number, rangeDays: number, append = false) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { startDate, endDate } = buildDateRange(offsetDays, rangeDays);
-        const params = new URLSearchParams({ startDate, endDate, timezone });
-        const res = await fetch(`/api/ghl/slots?${params}`);
-
-        if (!res.ok) throw new Error('Failed to load available times');
-
-        const data = await res.json();
-        const newDays: CalendarDay[] = Object.entries(data)
-          .map(([date, info]) => ({
-            date,
-            slots: ((info as { slots: Array<{ startTime: string; endTime: string }> }).slots || []).map(
-              (s: { startTime: string; endTime: string }, i: number) => ({
-                id: `${date}-${i}`,
-                startTime: s.startTime,
-                endTime: s.endTime,
-              })
-            ),
-          }))
-          .filter((d) => d.slots.length > 0)
-          .sort((a, b) => a.date.localeCompare(b.date));
-
-        setDays((prev) => (append ? [...prev, ...newDays] : newDays));
-      } catch {
-        setError('Unable to load available times right now.');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [timezone]
-  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [displayTimezone, setDisplayTimezone] = useState(calendarTimezone);
+  const [tzPickerOpen, setTzPickerOpen] = useState(false);
+  const tzRef = useRef<HTMLDivElement>(null);
+  const [viewMonth, setViewMonth] = useState(() => {
+    const now = new Date();
+    return { year: now.getFullYear(), month: now.getMonth() };
+  });
 
   useEffect(() => {
-    fetchSlots(0, 5);
+    function handleClickOutside(e: MouseEvent) {
+      if (tzRef.current && !tzRef.current.contains(e.target as Node)) {
+        setTzPickerOpen(false);
+      }
+    }
+    if (tzPickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [tzPickerOpen]);
+
+  const today = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const maxDate = useMemo(() => getBusinessDayLimit(5), []);
+
+  const todayKey = toDateKey(today);
+  const maxDateKey = toDateKey(maxDate);
+
+  const fetchSlots = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const startDate = toDateKey(today);
+      const end = new Date(maxDate);
+      end.setDate(end.getDate() + 1);
+      const endDate = toDateKey(end);
+
+      const params = new URLSearchParams({ startDate, endDate, timezone: calendarTimezone });
+      const res = await fetch(`/api/ghl/slots?${params}`);
+      if (!res.ok) throw new Error('Failed to load available times');
+
+      const data = await res.json();
+      const newDays: CalendarDay[] = Object.entries(data)
+        .map(([date, info]) => ({
+          date,
+          slots: (
+            (info as { slots: Array<{ startTime: string; endTime: string }> }).slots || []
+          ).map((s: { startTime: string; endTime: string }, i: number) => ({
+            id: `${date}-${i}`,
+            startTime: s.startTime,
+            endTime: s.endTime,
+          })),
+        }))
+        .filter((d) => d.slots.length > 0 && d.date >= todayKey && d.date <= maxDateKey)
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      setDays(newDays);
+    } catch {
+      setError('Unable to load available times right now.');
+    } finally {
+      setLoading(false);
+    }
+  }, [calendarTimezone, today, maxDate, todayKey, maxDateKey]);
+
+  useEffect(() => {
+    fetchSlots();
   }, [fetchSlots]);
 
-  const loadMore = () => {
-    const newOffset = daysLoaded;
-    setDaysLoaded((prev) => prev + 5);
-    fetchSlots(newOffset, 5, true);
+  const availableDates = useMemo(
+    () => new Set(days.map((d) => d.date)),
+    [days]
+  );
+
+  const slotsForSelectedDate = useMemo(
+    () => days.find((d) => d.date === selectedDate)?.slots || [],
+    [days, selectedDate]
+  );
+
+  const calendarGrid = useMemo(() => {
+    const { year, month } = viewMonth;
+    const firstOfMonth = new Date(year, month, 1);
+    const startDow = firstOfMonth.getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const cells: Array<{ date: Date; key: string; inMonth: boolean } | null> = [];
+
+    for (let i = 0; i < startDow; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      cells.push({ date, key: toDateKey(date), inMonth: true });
+    }
+
+    return cells;
+  }, [viewMonth]);
+
+  const monthLabel = new Date(viewMonth.year, viewMonth.month).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const canGoPrev = (() => {
+    const prev = new Date(viewMonth.year, viewMonth.month - 1, 1);
+    const cur = new Date(today.getFullYear(), today.getMonth(), 1);
+    return prev >= cur;
+  })();
+
+  const canGoNext = (() => {
+    const nextStart = new Date(viewMonth.year, viewMonth.month + 1, 1);
+    return nextStart <= maxDate;
+  })();
+
+  const navigateMonth = (dir: -1 | 1) => {
+    setViewMonth((prev) => {
+      let m = prev.month + dir;
+      let y = prev.year;
+      if (m < 0) { m = 11; y--; }
+      if (m > 11) { m = 0; y++; }
+      return { year: y, month: m };
+    });
   };
+
+  const handleDateClick = (dateKey: string) => {
+    setSelectedDate(dateKey);
+    onSelect(null as unknown as CalendarSlot);
+  };
+
+  const currentTzLabel = TIMEZONE_OPTIONS.find((o) => o.value === displayTimezone)?.label
+    || getTimezoneAbbr(displayTimezone);
 
   if (error && days.length === 0) {
     return (
@@ -133,7 +234,7 @@ export default function SlotPicker({
           and we&apos;ll get you booked.
         </p>
         <button
-          onClick={() => fetchSlots(0, 5)}
+          onClick={fetchSlots}
           className="mt-4 text-sm text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
         >
           Try again
@@ -144,83 +245,195 @@ export default function SlotPicker({
 
   return (
     <div>
-      <p className="text-sm text-zinc-500 mb-5">
-        Times shown in {getTimezoneAbbr(timezone)}
-      </p>
+      {/* Timezone selector */}
+      <div className="relative inline-block mb-5" ref={tzRef}>
+        <button
+          type="button"
+          onClick={() => setTzPickerOpen((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400 transition-colors cursor-pointer"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+          </svg>
+          Times shown in {currentTzLabel}
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="none" className="shrink-0">
+            <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
 
-      {loading && days.length === 0 && (
-        <div className="space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-5 w-24 bg-white/[0.06] rounded mb-3" />
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[...Array(4)].map((_, j) => (
-                  <div key={j} className="h-11 bg-white/[0.06] rounded-lg" />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="space-y-5">
         <AnimatePresence>
-          {days.map((day) => (
+          {tzPickerOpen && (
             <motion.div
-              key={day.date}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute z-20 top-full left-0 mt-1 w-56 rounded-xl border border-white/[0.08] bg-[#1a1a24] shadow-xl overflow-hidden"
             >
-              <h3 className="text-sm font-semibold text-zinc-300 mb-2.5">
-                {formatDate(day.date)}
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {day.slots.map((slot) => {
-                  const isSelected = selectedSlot?.id === slot.id;
+              <div className="py-1 max-h-64 overflow-y-auto">
+                {TIMEZONE_OPTIONS.map((opt) => {
+                  const isActive = opt.value === displayTimezone;
                   return (
-                    <motion.button
-                      key={slot.id}
+                    <button
+                      key={opt.value}
                       type="button"
-                      onClick={() => onSelect(slot)}
-                      whileTap={{ scale: 0.97 }}
+                      onClick={() => {
+                        setDisplayTimezone(opt.value);
+                        setTzPickerOpen(false);
+                      }}
                       className={`
-                        rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer
-                        focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500
-                        ${
-                          isSelected
-                            ? 'border-cyan-500/50 bg-cyan-500/15 text-white shadow-[0_0_12px_rgba(6,182,212,0.1)]'
-                            : 'border-white/[0.06] bg-[#16161F] text-zinc-300 hover:border-white/[0.12] hover:text-white'
+                        w-full text-left px-3.5 py-2 text-sm transition-colors cursor-pointer
+                        ${isActive
+                          ? 'text-cyan-400 bg-cyan-500/10'
+                          : 'text-zinc-300 hover:bg-white/[0.06] hover:text-white'
                         }
                       `}
-                      aria-pressed={isSelected}
                     >
-                      {formatTime(slot.startTime, timezone)}
-                    </motion.button>
+                      {opt.label}
+                      <span className="ml-1.5 text-zinc-500">{getTimezoneAbbr(opt.value)}</span>
+                    </button>
                   );
                 })}
               </div>
             </motion.div>
-          ))}
+          )}
         </AnimatePresence>
       </div>
 
-      {!loading && days.length > 0 && (
-        <button
-          onClick={loadMore}
-          className="mt-5 w-full text-center text-sm text-cyan-400 hover:text-cyan-300 cursor-pointer py-2"
-        >
-          Show more dates →
-        </button>
-      )}
+      {/* Month calendar */}
+      {loading ? (
+        <div className="animate-pulse space-y-3">
+          <div className="h-6 w-40 bg-white/[0.06] rounded mx-auto" />
+          <div className="grid grid-cols-7 gap-1">
+            {[...Array(35)].map((_, i) => (
+              <div key={i} className="h-10 bg-white/[0.06] rounded-lg" />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div>
+          {/* Month header */}
+          <div className="flex items-center justify-between mb-4">
+            <button
+              type="button"
+              onClick={() => navigateMonth(-1)}
+              disabled={!canGoPrev}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+              aria-label="Previous month"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <span className="text-sm font-semibold text-white">{monthLabel}</span>
+            <button
+              type="button"
+              onClick={() => navigateMonth(1)}
+              disabled={!canGoNext}
+              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+              aria-label="Next month"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>
 
-      {loading && days.length > 0 && (
-        <div className="mt-4 text-center">
-          <div className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {WEEKDAY_LABELS.map((label) => (
+              <div key={label} className="text-center text-xs font-medium text-zinc-500 py-1">
+                {label}
+              </div>
+            ))}
+          </div>
+
+          {/* Day cells */}
+          <div className="grid grid-cols-7 gap-1">
+            {calendarGrid.map((cell, i) => {
+              if (!cell) return <div key={`empty-${i}`} />;
+
+              const isAvailable = availableDates.has(cell.key);
+              const isInRange = cell.key >= todayKey && cell.key <= maxDateKey;
+              const isSelected = cell.key === selectedDate;
+              const isToday = cell.key === todayKey;
+              const isDisabled = !isAvailable || !isInRange;
+
+              return (
+                <button
+                  key={cell.key}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => handleDateClick(cell.key)}
+                  className={`
+                    relative h-10 rounded-lg text-sm font-medium transition-all cursor-pointer
+                    focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500
+                    ${isSelected
+                      ? 'bg-cyan-500 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                      : isAvailable && isInRange
+                        ? 'text-white hover:bg-white/[0.08] active:bg-white/[0.12]'
+                        : 'text-zinc-600 cursor-default'
+                    }
+                  `}
+                >
+                  {cell.date.getDate()}
+                  {isToday && !isSelected && (
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-500" />
+                  )}
+                  {isAvailable && isInRange && !isSelected && (
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Confirm booking section */}
+      {/* Time slots for selected date */}
+      <AnimatePresence mode="wait">
+        {selectedDate && slotsForSelectedDate.length > 0 && (
+          <motion.div
+            key={selectedDate}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="mt-6"
+          >
+            <h3 className="text-sm font-semibold text-zinc-300 mb-3">
+              {formatSelectedDate(selectedDate)}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {slotsForSelectedDate.map((slot) => {
+                const isActive = selectedSlot?.id === slot.id;
+                return (
+                  <motion.button
+                    key={slot.id}
+                    type="button"
+                    onClick={() => onSelect(slot)}
+                    whileTap={{ scale: 0.97 }}
+                    className={`
+                      rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500
+                      ${isActive
+                        ? 'border-cyan-500/50 bg-cyan-500/15 text-white shadow-[0_0_12px_rgba(6,182,212,0.1)]'
+                        : 'border-white/[0.06] bg-[#16161F] text-zinc-300 hover:border-white/[0.12] hover:text-white'
+                      }
+                    `}
+                    aria-pressed={isActive}
+                  >
+                    {formatTime(slot.startTime, displayTimezone)}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Confirm booking */}
       <AnimatePresence>
         {selectedSlot && (
           <motion.div
@@ -231,10 +444,10 @@ export default function SlotPicker({
           >
             <p className="text-sm text-zinc-400 mb-1">Selected time</p>
             <p className="text-white font-medium">
-              {formatDate(selectedSlot.startTime.split('T')[0])},{' '}
-              {formatTime(selectedSlot.startTime, timezone)} –{' '}
-              {formatTime(selectedSlot.endTime, timezone)}{' '}
-              {getTimezoneAbbr(timezone)}
+              {formatSelectedDate(selectedSlot.startTime.split('T')[0])},{' '}
+              {formatTime(selectedSlot.startTime, displayTimezone)} –{' '}
+              {formatTime(selectedSlot.endTime, displayTimezone)}{' '}
+              {getTimezoneAbbr(displayTimezone)}
             </p>
 
             {bookingError && (

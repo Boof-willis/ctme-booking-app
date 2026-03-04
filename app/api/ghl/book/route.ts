@@ -13,7 +13,7 @@ function checkRateLimit(ip: string): boolean {
     return true;
   }
 
-  if (entry.count >= 10) return false;
+  if (entry.count >= 30) return false;
   entry.count++;
   return true;
 }
@@ -63,12 +63,15 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // v1 may return { id } or { appointment: { id } }
-    const appointmentId = result?.id ?? (result as unknown as Record<string, unknown>)?.appointment;
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const appointmentId =
+      result?.id ??
+      (result as any)?.calendarId ??
+      (result as any)?.appointment?.id;
 
     return NextResponse.json({
       appointmentId,
-      status: result.status,
+      status: result.status || (result as any)?.appointmentStatus,
       startTime: result.startTime,
       endTime: result.endTime,
     });

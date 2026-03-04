@@ -8,6 +8,7 @@ const UTM_KEYS: (keyof UTMParams)[] = [
   'utm_term',
   'gclid',
   'fbclid',
+  'ockno_id',
 ];
 
 export function parseUTMParams(): UTMParams {

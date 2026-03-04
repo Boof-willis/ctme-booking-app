@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useSurveyState } from '@/hooks/useSurveyState';
 import ProgressBar from '@/components/ProgressBar';
 import DisqualifiedScreen from '@/components/DisqualifiedScreen';
@@ -11,41 +11,35 @@ import StepBlockchains from '@/components/steps/StepBlockchains';
 import StepSoftware from '@/components/steps/StepSoftware';
 import StepContactInfo from '@/components/steps/StepContactInfo';
 import StepCalendar from '@/components/steps/StepCalendar';
-import StepConfirmation from '@/components/steps/StepConfirmation';
 import { Country, CalendarSlot, TaxSoftware } from '@/types/survey';
 import { isHoneypotFilled } from '@/lib/validation';
 import { trackSurveyStarted, trackEmailCaptured, trackAppointmentBooked } from '@/lib/tracking';
-import { VALID_COUNTRIES } from '@/lib/constants';
+import { STEPS } from '@/lib/constants';
 
 export default function SurveyFlow() {
   const state = useSurveyState();
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
-  const [confirmSubmitting, setConfirmSubmitting] = useState(false);
-  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [flowComplete, setFlowComplete] = useState(false);
 
   const handleCountrySelect = useCallback(
-    (country: Country) => {
-      state.setCountry(country);
-      if (VALID_COUNTRIES.includes(country)) {
-        trackSurveyStarted();
-        state.goNext();
-      }
+    (country: Country, otherCountryName?: string, otherCountryCode?: string) => {
+      state.setCountry(country, otherCountryName, otherCountryCode);
+      trackSurveyStarted();
+      state.goNext();
     },
     [state]
   );
 
   const handleContactSubmit = useCallback(
-    async (firstName: string, email: string, honeypot: string) => {
+    async (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string) => {
       if (isHoneypotFilled(honeypot)) {
-        // Silently "succeed" for bots
-        state.setContactInfo(firstName, email, honeypot);
+        state.setContactInfo(firstName, lastName, email, phone, honeypot);
         state.goNext();
         return;
       }
 
-      state.setContactInfo(firstName, email, honeypot);
+      state.setContactInfo(firstName, lastName, email, phone, honeypot);
       setContactSubmitting(true);
       setContactError(null);
 
@@ -55,9 +49,13 @@ export default function SurveyFlow() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             firstName,
+            lastName,
             email,
+            phone,
             surveyData: {
               country: state.surveyData.country,
+              otherCountryName: state.surveyData.otherCountryName,
+              otherCountryCode: state.surveyData.otherCountryCode,
               taxYears: state.surveyData.taxYears,
               blockchains: state.surveyData.blockchains,
               hasTaxSoftware: state.surveyData.hasTaxSoftware,
@@ -118,37 +116,9 @@ export default function SurveyFlow() {
     const data = await res.json();
     state.setAppointmentId(data.appointmentId);
     trackAppointmentBooked();
-    state.goNext();
+    state.completeFlow();
+    setFlowComplete(true);
   }, [state]);
-
-  const handleConfirmSubmit = useCallback(
-    async (lastName: string, phone: string) => {
-      state.setFinalDetails(lastName, phone);
-      setConfirmSubmitting(true);
-      setConfirmError(null);
-
-      try {
-        const contactId = state.surveyData.contactId;
-        if (!contactId) throw new Error('No contact ID');
-
-        const res = await fetch('/api/ghl/contact', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contactId, lastName, phone }),
-        });
-
-        if (!res.ok) throw new Error('Failed to update contact');
-
-        state.completeFlow();
-        setFlowComplete(true);
-      } catch {
-        setConfirmError('Something went wrong. Please try again.');
-      } finally {
-        setConfirmSubmitting(false);
-      }
-    },
-    [state]
-  );
 
   const handleSoftwareSelect = useCallback(
     (hasSoftware: boolean, name?: TaxSoftware) => {
@@ -209,7 +179,11 @@ export default function SurveyFlow() {
           <StepContactInfo
             key="contact-info"
             firstName={state.surveyData.firstName}
+            lastName={state.surveyData.lastName}
             email={state.surveyData.email}
+            phone={state.surveyData.phone}
+            country={state.surveyData.country}
+            otherCountryCode={state.surveyData.otherCountryCode}
             onSubmit={handleContactSubmit}
             onBack={state.goBack}
             isSubmitting={contactSubmitting}
@@ -226,26 +200,76 @@ export default function SurveyFlow() {
             onBack={state.goBack}
           />
         );
-      case 6:
-        return state.surveyData.selectedSlot ? (
-          <StepConfirmation
-            key="confirmation"
-            selectedSlot={state.surveyData.selectedSlot}
-            timezone={state.surveyData.timezone || 'UTC'}
-            email={state.surveyData.email || ''}
-            country={state.surveyData.country || ''}
-            lastName={state.surveyData.lastName}
-            phone={state.surveyData.phone}
-            onSubmit={handleConfirmSubmit}
-            isSubmitting={confirmSubmitting}
-            isComplete={flowComplete}
-            error={confirmError}
-          />
-        ) : null;
       default:
         return null;
     }
   };
+
+  if (flowComplete) {
+    const tz = state.surveyData.timezone || 'America/Denver';
+    const slot = state.surveyData.selectedSlot;
+    return (
+      <div>
+        <ProgressBar currentStep={STEPS.length} />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
+              className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-cyan-500/20 mb-4"
+            >
+              <span className="text-3xl">🎉</span>
+            </motion.div>
+            <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
+              You&apos;re booked!
+            </h1>
+          </div>
+
+          {slot && (
+            <div className="rounded-xl border border-white/[0.06] bg-[#16161F] p-4 mb-6">
+              <p className="text-sm text-zinc-400 mb-1">Your appointment</p>
+              <p className="text-white font-medium">
+                {new Date(slot.startTime).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  timeZone: tz,
+                })}{' '}
+                at{' '}
+                {new Date(slot.startTime).toLocaleTimeString('en-US', {
+                  hour: 'numeric',
+                  minute: '2-digit',
+                  timeZone: tz,
+                })}
+              </p>
+            </div>
+          )}
+
+          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-5 text-center">
+            <p className="text-white text-base">
+              We&apos;ll send a confirmation email to{' '}
+              <span className="font-medium text-cyan-400">{state.surveyData.email}</span>.
+            </p>
+            {slot && (
+              <p className="text-zinc-400 text-sm mt-2">
+                See you on {new Date(slot.startTime).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  timeZone: tz,
+                })}!
+              </p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div>

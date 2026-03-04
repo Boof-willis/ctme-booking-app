@@ -9,25 +9,22 @@ interface ProgressBarProps {
 
 export default function ProgressBar({ currentStep }: ProgressBarProps) {
   const totalSegments = STEPS.length;
-  // Endowed progress: step 0 (first step) shows ~15% within its own segment
-  const progressPercent = ((currentStep + 0.15) / totalSegments) * 100;
+  const isComplete = currentStep >= totalSegments;
+  const progressPercent = isComplete
+    ? 100
+    : ((currentStep + 0.15) / totalSegments) * 100;
   const clampedProgress = Math.min(Math.max(progressPercent, 2), 100);
+
+  const currentLabel = isComplete ? 'Booked' : (STEPS[currentStep]?.label || '');
+  const displayStep = isComplete ? totalSegments : currentStep + 1;
 
   return (
     <div className="w-full mb-8">
-      {/* Segment labels — hidden on mobile */}
-      <div className="hidden sm:grid sm:grid-cols-7 gap-1 mb-2">
-        {STEPS.map((step, i) => (
-          <span
-            key={step.id}
-            className={`text-[11px] text-center font-medium truncate ${
-              i <= currentStep ? 'text-cyan-400' : 'text-zinc-600'
-            }`}
-          >
-            {i < currentStep ? '✓ ' : ''}
-            {step.label}
-          </span>
-        ))}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium text-cyan-400">{currentLabel}</span>
+        <span className="text-xs text-zinc-500">
+          {displayStep} / {totalSegments}
+        </span>
       </div>
 
       {/* Progress track */}
@@ -38,13 +35,6 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
           animate={{ width: `${clampedProgress}%` }}
           transition={{ duration: 0.4, ease: 'easeOut' }}
         />
-      </div>
-
-      {/* Step counter on mobile */}
-      <div className="sm:hidden mt-2 text-center">
-        <span className="text-xs text-zinc-500">
-          Step {currentStep + 1} of {totalSegments}
-        </span>
       </div>
     </div>
   );

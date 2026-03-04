@@ -7,6 +7,8 @@ import { parseUTMParams } from '@/lib/utm';
 
 const DEFAULT_DATA: SurveyData = {
   country: undefined,
+  otherCountryName: undefined,
+  otherCountryCode: undefined,
   taxYears: [],
   blockchains: [],
   hasTaxSoftware: undefined,
@@ -72,9 +74,6 @@ export function useSurveyState() {
       setCurrentStep(session.step);
       stepRef.current = session.step;
       setSurveyData({ ...session.data, utmParams: { ...session.data.utmParams, ...utmParams } });
-      if (session.data.country === 'Other') {
-        setIsDisqualified(true);
-      }
     } else {
       setSurveyData((prev) => ({ ...prev, utmParams }));
     }
@@ -145,13 +144,13 @@ export function useSurveyState() {
     stepRef.current = next;
   }, []);
 
-  const setCountry = useCallback((country: Country) => {
-    if (country === 'Other') {
-      setIsDisqualified(true);
-      setSurveyData((prev) => ({ ...prev, country }));
-      return;
-    }
-    setSurveyData((prev) => ({ ...prev, country }));
+  const setCountry = useCallback((country: Country, otherCountryName?: string, otherCountryCode?: string) => {
+    setSurveyData((prev) => ({
+      ...prev,
+      country,
+      otherCountryName: country === 'Other' ? otherCountryName : undefined,
+      otherCountryCode: country === 'Other' ? otherCountryCode : undefined,
+    }));
   }, []);
 
   const setTaxYears = useCallback((taxYears: TaxYear[]) => {
@@ -166,8 +165,8 @@ export function useSurveyState() {
     setSurveyData((prev) => ({ ...prev, hasTaxSoftware, taxSoftwareName }));
   }, []);
 
-  const setContactInfo = useCallback((firstName: string, email: string, honeypot?: string) => {
-    setSurveyData((prev) => ({ ...prev, firstName, email, honeypot }));
+  const setContactInfo = useCallback((firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot?: string) => {
+    setSurveyData((prev) => ({ ...prev, firstName, lastName, email, phone, honeypot }));
   }, []);
 
   const setContactId = useCallback((contactId: string) => {

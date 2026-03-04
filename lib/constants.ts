@@ -7,7 +7,6 @@ export const STEPS: StepDefinition[] = [
   { id: 'software', label: 'Software', number: 4, hash: '#step-4' },
   { id: 'contact-info', label: 'Your Info', number: 5, hash: '#step-5' },
   { id: 'calendar', label: 'Pick a Time', number: 6, hash: '#step-6' },
-  { id: 'confirmation', label: 'Confirm', number: 7, hash: '#step-7' },
 ];
 
 export const COUNTRIES: Country[] = [
@@ -66,17 +65,11 @@ export const COUNTRY_PHONE_CODES: Record<string, string> = {
 
 export const GHL_CUSTOM_FIELDS = {
   country: 'country',
-  taxYears: 'tax_years',
+  taxYears: 'which_tax_years_do_you_need_help_with',
   blockchainsUsed: 'blockchains_used',
-  hasTaxSoftware: 'has_tax_software',
-  taxSoftwareName: 'tax_software_name',
-  utmSource: 'utm_source',
-  utmMedium: 'utm_medium',
-  utmCampaign: 'utm_campaign',
-  utmContent: 'utm_content',
-  utmTerm: 'utm_term',
-  gclid: 'gclid',
-  fbclid: 'fbclid',
+  hasTaxSoftware: 'do_you_currently_have_crypto_tax_software_set_up',
+  taxSoftwareName: 'if_yes_which_crypto_tax_software',
+  ocknoId: 'ockno_id',
 } as const;
 
 export const SESSION_KEYS = {

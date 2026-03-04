@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import BackButton from '@/components/BackButton';
 import SlotPicker from '@/components/SlotPicker';
@@ -19,21 +19,13 @@ export default function StepCalendar({
   onBook,
   onBack,
 }: StepCalendarProps) {
-  const [timezone, setTimezone] = useState('UTC');
+  const calendarTimezone = 'America/Denver';
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  useEffect(() => {
-    try {
-      setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-    } catch {
-      setTimezone('UTC');
-    }
-  }, []);
-
   const handleSelect = (slot: CalendarSlot) => {
     setBookingError(null);
-    onSlotSelect(slot, timezone);
+    onSlotSelect(slot, calendarTimezone);
   };
 
   const handleConfirm = async () => {
@@ -63,7 +55,7 @@ export default function StepCalendar({
       <p className="text-zinc-400 text-base mb-6">&nbsp;</p>
 
       <SlotPicker
-        timezone={timezone}
+        calendarTimezone={calendarTimezone}
         onSelect={handleSelect}
         onConfirm={handleConfirm}
         selectedSlot={selectedSlot}

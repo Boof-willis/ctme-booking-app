@@ -23,10 +23,13 @@ export interface UTMParams {
   utm_term?: string;
   gclid?: string;
   fbclid?: string;
+  ockno_id?: string;
 }
 
 export interface SurveyData {
   country?: Country;
+  otherCountryName?: string;
+  otherCountryCode?: string;
   taxYears: TaxYear[];
   blockchains: Blockchain[];
   hasTaxSoftware?: boolean;
@@ -82,8 +85,7 @@ export type StepId =
   | 'blockchains'
   | 'software'
   | 'contact-info'
-  | 'calendar'
-  | 'confirmation';
+  | 'calendar';
 
 export interface StepDefinition {
   id: StepId;

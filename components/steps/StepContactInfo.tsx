@@ -3,12 +3,17 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import BackButton from '@/components/BackButton';
-import { isValidEmail } from '@/lib/validation';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
+import { getDialCodeForCountry } from '@/lib/countries';
 
 interface StepContactInfoProps {
   firstName?: string;
+  lastName?: string;
   email?: string;
-  onSubmit: (firstName: string, email: string, honeypot: string) => void;
+  phone?: string;
+  country?: string;
+  otherCountryCode?: string;
+  onSubmit: (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string) => void;
   onBack: () => void;
   isSubmitting: boolean;
   error: string | null;
@@ -16,28 +21,64 @@ interface StepContactInfoProps {
 
 export default function StepContactInfo({
   firstName: initialFirstName,
+  lastName: initialLastName,
   email: initialEmail,
+  phone: initialPhone,
+  country,
+  otherCountryCode,
   onSubmit,
   onBack,
   isSubmitting,
   error,
 }: StepContactInfoProps) {
-  const [firstName, setFirstName] = useState(initialFirstName || '');
+  const defaultDialCode = getDialCodeForCountry(country, otherCountryCode);
+
+  const initialFullName = [initialFirstName, initialLastName].filter(Boolean).join(' ');
+  const [fullName, setFullName] = useState(initialFullName || '');
   const [email, setEmail] = useState(initialEmail || '');
+  const [dialCode, setDialCode] = useState(() => {
+    if (initialPhone && initialPhone.startsWith('+')) {
+      const digits = initialPhone.replace(/[^+\d]/g, '');
+      const defaultLen = defaultDialCode.length;
+      return digits.slice(0, defaultLen) || defaultDialCode;
+    }
+    return defaultDialCode;
+  });
+  const [phone, setPhone] = useState(() => {
+    if (initialPhone && initialPhone.startsWith('+')) {
+      const digits = initialPhone.replace(/\D/g, '');
+      const codeDigits = defaultDialCode.replace(/\D/g, '');
+      if (digits.startsWith(codeDigits)) {
+        return digits.slice(codeDigits.length);
+      }
+      return digits;
+    }
+    return initialPhone || '';
+  });
   const [honeypot, setHoneypot] = useState('');
-  const [emailError, setEmailError] = useState('');
   const [nameError, setNameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
+
+  const handleDialCodeChange = (value: string) => {
+    const cleaned = value.replace(/[^+\d]/g, '');
+    if (!cleaned.startsWith('+')) {
+      setDialCode('+' + cleaned);
+    } else {
+      setDialCode(cleaned);
+    }
+    if (phoneError) setPhoneError('');
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const trimmedName = firstName.trim();
+    const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
-
     let valid = true;
 
     if (!trimmedName) {
-      setNameError('Please enter your first name');
+      setNameError('Please enter your name');
       valid = false;
     } else {
       setNameError('');
@@ -53,10 +94,31 @@ export default function StepContactInfo({
       setEmailError('');
     }
 
+    const phoneDigits = phone.replace(/\D/g, '');
+    if (phoneDigits) {
+      const fullPhone = `${dialCode}${phoneDigits}`;
+      if (!isValidPhone(fullPhone)) {
+        setPhoneError('Please enter a valid phone number');
+        valid = false;
+      } else {
+        setPhoneError('');
+      }
+    } else {
+      setPhoneError('');
+    }
+
     if (valid) {
-      onSubmit(trimmedName, trimmedEmail, honeypot);
+      const parts = trimmedName.split(/\s+/);
+      const firstName = parts[0];
+      const lastName = parts.length > 1 ? parts.slice(1).join(' ') : undefined;
+      const fullPhone = phoneDigits ? `${dialCode}${phoneDigits}` : undefined;
+      onSubmit(firstName, lastName, trimmedEmail, fullPhone, honeypot);
     }
   };
+
+  const inputBase = 'w-full rounded-xl border bg-[#16161F] px-4 py-3 text-white text-base placeholder:text-zinc-600 focus:outline-none focus:ring-1';
+  const inputNormal = 'border-white/[0.08] focus:border-cyan-500/50 focus:ring-cyan-500/30';
+  const inputError = 'border-red-500/50 focus:border-red-500 focus:ring-red-500/30';
 
   return (
     <motion.div
@@ -88,28 +150,20 @@ export default function StepContactInfo({
         />
 
         <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-zinc-300 mb-1.5">
-            First Name
+          <label htmlFor="fullName" className="block text-sm font-medium text-zinc-300 mb-1.5">
+            Name
           </label>
           <input
-            id="firstName"
+            id="fullName"
             type="text"
-            value={firstName}
+            value={fullName}
             onChange={(e) => {
-              setFirstName(e.target.value);
+              setFullName(e.target.value);
               if (nameError) setNameError('');
             }}
-            placeholder="Your first name"
-            autoComplete="given-name"
-            className={`
-              w-full rounded-xl border bg-[#16161F] px-4 py-3 text-white text-base
-              placeholder:text-zinc-600
-              focus:outline-none focus:ring-1
-              ${nameError
-                ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/30'
-                : 'border-white/[0.08] focus:border-cyan-500/50 focus:ring-cyan-500/30'
-              }
-            `}
+            placeholder="Your full name"
+            autoComplete="name"
+            className={`${inputBase} ${nameError ? inputError : inputNormal}`}
           />
           {nameError && <p className="mt-1.5 text-sm text-red-400">{nameError}</p>}
         </div>
@@ -128,17 +182,43 @@ export default function StepContactInfo({
             }}
             placeholder="you@example.com"
             autoComplete="email"
-            className={`
-              w-full rounded-xl border bg-[#16161F] px-4 py-3 text-white text-base
-              placeholder:text-zinc-600
-              focus:outline-none focus:ring-1
-              ${emailError
-                ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/30'
-                : 'border-white/[0.08] focus:border-cyan-500/50 focus:ring-cyan-500/30'
-              }
-            `}
+            className={`${inputBase} ${emailError ? inputError : inputNormal}`}
           />
           {emailError && <p className="mt-1.5 text-sm text-red-400">{emailError}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-zinc-300 mb-1.5">
+            Phone <span className="text-zinc-500 font-normal">(optional)</span>
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              value={dialCode}
+              onChange={(e) => handleDialCodeChange(e.target.value)}
+              aria-label="Country dial code"
+              className={`
+                w-[72px] shrink-0 rounded-xl border bg-[#16161F] px-3 py-3
+                text-center text-white text-base
+                focus:outline-none focus:ring-1
+                ${phoneError ? inputError : inputNormal}
+              `}
+            />
+            <input
+              id="phone"
+              type="tel"
+              value={phone}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 15);
+                setPhone(digits);
+                if (phoneError) setPhoneError('');
+              }}
+              placeholder="Phone number"
+              autoComplete="tel-national"
+              className={`${inputBase} ${phoneError ? inputError : inputNormal}`}
+            />
+          </div>
+          {phoneError && <p className="mt-1.5 text-sm text-red-400">{phoneError}</p>}
         </div>
 
         {error && (
