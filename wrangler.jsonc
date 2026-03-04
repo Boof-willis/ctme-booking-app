@@ -1,5 +1,6 @@
 {
   "name": "ctme-booking-app",
+  "account_id": "93ada22c0edcbb59500f5c36c7d6db88",
   "main": ".open-next/worker.js",
   "assets": {
     "directory": ".open-next/assets",
