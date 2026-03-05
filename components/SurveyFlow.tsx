@@ -32,14 +32,14 @@ export default function SurveyFlow() {
   );
 
   const handleContactSubmit = useCallback(
-    async (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string) => {
+    async (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string, agreedToTos: boolean) => {
       if (isHoneypotFilled(honeypot)) {
-        state.setContactInfo(firstName, lastName, email, phone, honeypot);
+        state.setContactInfo(firstName, lastName, email, phone, honeypot, agreedToTos);
         state.goNext();
         return;
       }
 
-      state.setContactInfo(firstName, lastName, email, phone, honeypot);
+      state.setContactInfo(firstName, lastName, email, phone, honeypot, agreedToTos);
       setContactSubmitting(true);
       setContactError(null);
 
@@ -60,6 +60,7 @@ export default function SurveyFlow() {
               blockchains: state.surveyData.blockchains,
               hasTaxSoftware: state.surveyData.hasTaxSoftware,
               taxSoftwareName: state.surveyData.taxSoftwareName,
+              agreedToTos,
               utmParams: state.surveyData.utmParams,
             },
           }),

@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       blockchains: surveyData?.blockchains || [],
       hasTaxSoftware: surveyData?.hasTaxSoftware,
       taxSoftwareName: surveyData?.taxSoftwareName,
+      agreedToTos: surveyData?.agreedToTos ?? false,
       country: surveyData?.country,
       otherCountryName: surveyData?.otherCountryName,
       otherCountryCode: surveyData?.otherCountryCode,
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
           blockchains: surveyData?.blockchains,
           hasTaxSoftware: surveyData?.hasTaxSoftware,
           taxSoftwareName: surveyData?.taxSoftwareName,
+          agreedToTos: surveyData?.agreedToTos ?? false,
           utmParams: surveyData?.utmParams,
         }),
       }).catch((err) => console.error('Webhook fire failed:', err));

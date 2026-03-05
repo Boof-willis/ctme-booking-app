@@ -70,6 +70,7 @@ export const GHL_CUSTOM_FIELDS = {
   hasTaxSoftware: 'do_you_currently_have_crypto_tax_software_set_up',
   taxSoftwareName: 'if_yes_which_crypto_tax_software',
   ocknoId: 'ockno_id',
+  agreedToTos: 'agreed_to_tos',
 } as const;
 
 export const SESSION_KEYS = {

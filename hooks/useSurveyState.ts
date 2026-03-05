@@ -18,6 +18,7 @@ const DEFAULT_DATA: SurveyData = {
   email: undefined,
   phone: undefined,
   honeypot: undefined,
+  agreedToTos: undefined,
   utmParams: {},
   contactId: undefined,
   selectedSlot: undefined,
@@ -165,8 +166,8 @@ export function useSurveyState() {
     setSurveyData((prev) => ({ ...prev, hasTaxSoftware, taxSoftwareName }));
   }, []);
 
-  const setContactInfo = useCallback((firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot?: string) => {
-    setSurveyData((prev) => ({ ...prev, firstName, lastName, email, phone, honeypot }));
+  const setContactInfo = useCallback((firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot?: string, agreedToTos?: boolean) => {
+    setSurveyData((prev) => ({ ...prev, firstName, lastName, email, phone, honeypot, agreedToTos }));
   }, []);
 
   const setContactId = useCallback((contactId: string) => {

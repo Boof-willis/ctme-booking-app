@@ -43,6 +43,7 @@ function buildCustomFields(data: SurveyData): Array<{ key: string; field_value: 
   };
   set(GHL_CUSTOM_FIELDS.taxSoftwareName, data.taxSoftwareName ? softwareNameMap[data.taxSoftwareName] || data.taxSoftwareName : undefined);
   set(GHL_CUSTOM_FIELDS.ocknoId, data.utmParams.ockno_id);
+  set(GHL_CUSTOM_FIELDS.agreedToTos, data.agreedToTos === true ? 'Yes' : data.agreedToTos === false ? 'No' : undefined);
 
   return fields;
 }

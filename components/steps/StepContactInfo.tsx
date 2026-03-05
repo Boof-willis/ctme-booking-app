@@ -13,7 +13,7 @@ interface StepContactInfoProps {
   phone?: string;
   country?: string;
   otherCountryCode?: string;
-  onSubmit: (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string) => void;
+  onSubmit: (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string, agreedToTos: boolean) => void;
   onBack: () => void;
   isSubmitting: boolean;
   error: string | null;
@@ -56,9 +56,11 @@ export default function StepContactInfo({
     return initialPhone || '';
   });
   const [honeypot, setHoneypot] = useState('');
+  const [agreedToTos, setAgreedToTos] = useState(false);
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [tosError, setTosError] = useState('');
 
   const handleDialCodeChange = (value: string) => {
     const cleaned = value.replace(/[^+\d]/g, '');
@@ -107,12 +109,19 @@ export default function StepContactInfo({
       setPhoneError('');
     }
 
+    if (!agreedToTos) {
+      setTosError('You must agree to continue');
+      valid = false;
+    } else {
+      setTosError('');
+    }
+
     if (valid) {
       const parts = trimmedName.split(/\s+/);
       const firstName = parts[0];
       const lastName = parts.length > 1 ? parts.slice(1).join(' ') : undefined;
       const fullPhone = phoneDigits ? `${dialCode}${phoneDigits}` : undefined;
-      onSubmit(firstName, lastName, trimmedEmail, fullPhone, honeypot);
+      onSubmit(firstName, lastName, trimmedEmail, fullPhone, honeypot, agreedToTos);
     }
   };
 
@@ -219,6 +228,33 @@ export default function StepContactInfo({
             />
           </div>
           {phoneError && <p className="mt-1.5 text-sm text-red-400">{phoneError}</p>}
+        </div>
+
+        <div>
+          <label className="flex items-start gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={agreedToTos}
+              onChange={(e) => {
+                setAgreedToTos(e.target.checked);
+                if (tosError) setTosError('');
+              }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#16161F] accent-cyan-500"
+            />
+            <span className={`text-sm leading-snug ${tosError ? 'text-red-400' : 'text-zinc-400'}`}>
+              I agree to the{' '}
+              <a
+                href="https://cryptotaxmadeeasy.com/terms-of-service/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline text-white hover:text-cyan-400 transition-colors"
+              >
+                Terms of Service
+              </a>{' '}
+              and consent to being contacted by Crypto Tax Made Easy.
+            </span>
+          </label>
+          {tosError && <p className="mt-1.5 ml-7 text-sm text-red-400">{tosError}</p>}
         </div>
 
         {error && (

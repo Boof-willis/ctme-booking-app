@@ -39,6 +39,7 @@ export interface SurveyData {
   email?: string;
   phone?: string;
   honeypot?: string;
+  agreedToTos?: boolean;
   utmParams: UTMParams;
   contactId?: string;
   selectedSlot?: CalendarSlot;

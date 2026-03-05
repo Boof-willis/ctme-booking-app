@@ -1,12 +1,18 @@
+import Image from 'next/image';
 import SurveyFlow from '@/components/SurveyFlow';
 
 export default function ConsultationPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-start px-4 sm:px-6 py-8 sm:py-12">
-      <div className="mb-8 text-center">
-        <h2 className="text-lg font-semibold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-          Crypto Tax Made Easy
-        </h2>
+      <div className="mb-6 sm:mb-8 w-full flex justify-center opacity-80">
+        <Image
+          src="/ctme-logo.png"
+          alt="Crypto Tax Made Easy"
+          width={1920}
+          height={1080}
+          className="w-[140px] sm:w-[180px] h-auto object-contain"
+          priority
+        />
       </div>
 
       <div className="w-full max-w-[560px]">
