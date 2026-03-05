@@ -3,8 +3,8 @@ import SurveyFlow from '@/components/SurveyFlow';
 
 export default function ConsultationPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-start px-4 sm:px-6 py-8 sm:py-12">
-      <div className="mb-6 sm:mb-8 w-full flex justify-center opacity-80">
+    <main className="min-h-screen flex flex-col items-center justify-start px-4 sm:px-6 py-4 sm:py-6">
+      <div className="mb-3 sm:mb-4 w-full flex justify-center opacity-80">
         <Image
           src="/ctme-logo.png"
           alt="Crypto Tax Made Easy"
