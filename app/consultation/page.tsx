@@ -16,7 +16,7 @@ export default function ConsultationPage() {
       </div>
 
       <div className="w-full max-w-[560px]">
-        <div className="rounded-2xl border border-white/[0.06] bg-[#12121A] p-6 sm:p-8 shadow-2xl shadow-black/20">
+        <div className="rounded-none border border-zinc-800 bg-zinc-950 p-6 sm:p-8 shadow-2xl shadow-black/40">
           <SurveyFlow />
         </div>
 

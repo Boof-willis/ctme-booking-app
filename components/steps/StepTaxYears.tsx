@@ -46,7 +46,9 @@ export default function StepTaxYears({ selected, onChange, onNext, onBack }: Ste
       <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
         Which tax years do you need help with?
       </h1>
-      <p className="text-zinc-400 text-base mb-8">Select all that apply</p>
+      <p className="font-mono text-[#beb086] text-sm mb-8">
+        &gt; Select all that apply
+      </p>
 
       <div className="flex flex-wrap gap-2.5 mb-8">
         {TAX_YEARS.map((year) => (
@@ -67,9 +69,9 @@ export default function StepTaxYears({ selected, onChange, onNext, onBack }: Ste
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="mb-6 border-l-3 border-cyan-500 bg-white/[0.04] rounded-r-md p-3"
+            className="mb-6 border-l-2 border-[#beb086] bg-[#beb086]/5 rounded-none p-3"
           >
-            <p className="text-sm text-white/70">{reassurance}</p>
+            <p className="text-xs font-mono text-zinc-400">&gt; {reassurance}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -81,15 +83,14 @@ export default function StepTaxYears({ selected, onChange, onNext, onBack }: Ste
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="
-          w-full rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500
-          py-3.5 text-base font-semibold text-white
-          shadow-[0_0_20px_rgba(59,130,246,0.25)]
-          transition-opacity hover:opacity-90
+          w-full rounded-none bg-[#beb086]
+          py-3.5 text-base font-bold text-black font-mono uppercase tracking-wider
+          transition-colors hover:bg-[#a69970]
           disabled:opacity-30 disabled:cursor-not-allowed
           cursor-pointer
         "
       >
-        Next →
+        [ Next ]
       </motion.button>
     </motion.div>
   );

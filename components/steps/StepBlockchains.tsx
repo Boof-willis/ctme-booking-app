@@ -34,8 +34,8 @@ export default function StepBlockchains({ selected, onChange, onNext, onBack }: 
       <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
         Which blockchains have you used?
       </h1>
-      <p className="text-zinc-400 text-base mb-8">
-        Select all that apply — this helps us prepare for your call
+      <p className="font-mono text-[#beb086] text-sm mb-8">
+        &gt; Select all that apply — this helps us prepare for your call
       </p>
 
       <div className="flex flex-wrap gap-2.5 mb-8">
@@ -56,15 +56,14 @@ export default function StepBlockchains({ selected, onChange, onNext, onBack }: 
         whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.99 }}
         className="
-          w-full rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500
-          py-3.5 text-base font-semibold text-white
-          shadow-[0_0_20px_rgba(59,130,246,0.25)]
-          transition-opacity hover:opacity-90
+          w-full rounded-none bg-[#beb086]
+          py-3.5 text-base font-bold text-black font-mono uppercase tracking-wider
+          transition-colors hover:bg-[#a69970]
           disabled:opacity-30 disabled:cursor-not-allowed
           cursor-pointer
         "
       >
-        Next →
+        [ Next ]
       </motion.button>
     </motion.div>
   );

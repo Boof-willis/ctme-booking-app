@@ -62,8 +62,8 @@ export default function StepCountry({ onSelect }: StepCountryProps) {
       <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
         Let&apos;s make sure we can help you
       </h1>
-      <p className="text-zinc-400 text-base mb-8">
-        Where are you a tax resident?
+      <p className="font-mono text-[#beb086] text-sm mb-8">
+        &gt; Where are you a tax resident?
       </p>
 
       <AnimatePresence mode="wait">
@@ -100,7 +100,7 @@ export default function StepCountry({ onSelect }: StepCountryProps) {
             <button
               type="button"
               onClick={handleBackToMain}
-              className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-white transition-colors mb-4 cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-zinc-500 hover:text-[#beb086] transition-colors mb-4 cursor-pointer"
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -125,13 +125,13 @@ export default function StepCountry({ onSelect }: StepCountryProps) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search countries..."
-                className="w-full rounded-xl border border-white/[0.08] bg-[#16161F] pl-10 pr-4 py-3 text-white text-sm placeholder:text-zinc-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 transition-colors"
+                className="w-full rounded-none border border-zinc-800 bg-zinc-950 pl-10 pr-4 py-3 text-white font-mono text-sm placeholder:text-zinc-600 focus:outline-none focus:border-[#beb086] focus:ring-1 focus:ring-[#beb086] transition-colors"
               />
             </div>
 
             <div
               ref={listRef}
-              className="max-h-[320px] overflow-y-auto rounded-xl border border-white/[0.06] bg-[#16161F] divide-y divide-white/[0.04] overscroll-contain"
+              className="max-h-[320px] overflow-y-auto rounded-none border border-zinc-800 bg-black divide-y divide-zinc-900 overscroll-contain mt-1"
               style={{ scrollbarWidth: 'thin', scrollbarColor: '#3f3f46 transparent' }}
             >
               {filteredCountries.length > 0 ? (
@@ -140,13 +140,14 @@ export default function StepCountry({ onSelect }: StepCountryProps) {
                     key={c.code}
                     type="button"
                     onClick={() => handleCountryPick(c.name, c.code)}
-                    className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/[0.04] hover:text-white transition-colors cursor-pointer"
+                    className="w-full text-left px-4 py-3 text-sm font-mono text-white hover:bg-zinc-900 hover:text-[#beb086] transition-colors cursor-pointer group flex items-center"
                   >
+                    <span className="opacity-0 group-hover:opacity-100 text-[#beb086] mr-2 transition-opacity">&gt;</span>
                     {c.name}
                   </button>
                 ))
               ) : (
-                <div className="px-4 py-8 text-center text-sm text-zinc-500">
+                <div className="px-4 py-8 text-center text-sm font-mono text-zinc-600">
                   No countries found
                 </div>
               )}

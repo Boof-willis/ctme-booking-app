@@ -52,7 +52,7 @@ export default function StepCalendar({
       <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
         Pick a time that works for you
       </h1>
-      <p className="text-zinc-400 text-base mb-6">&nbsp;</p>
+      <p className="font-mono text-[#beb086] text-sm mb-6">&gt; Select a slot below</p>
 
       <SlotPicker
         calendarTimezone={calendarTimezone}

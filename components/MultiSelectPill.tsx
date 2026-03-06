@@ -17,12 +17,12 @@ export default function MultiSelectPill({ label, selected, onClick }: MultiSelec
       animate={selected ? { scale: [1, 1.05, 1] } : {}}
       transition={{ duration: 0.1 }}
       className={`
-        rounded-full border px-5 py-2.5 text-sm font-medium transition-colors
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0F]
+        rounded-none border px-5 py-2.5 text-sm font-mono transition-colors
+        focus:outline-none focus-visible:ring-1 focus-visible:ring-[#beb086]
         ${
           selected
-            ? 'border-cyan-500/50 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 text-white shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-            : 'border-white/[0.08] bg-[#16161F] text-zinc-300 hover:border-white/[0.15] hover:text-white'
+            ? 'border-[#beb086] bg-[#beb086]/10 text-white'
+            : 'border-zinc-800 bg-black text-white hover:border-[#beb086] hover:text-white'
         }
         cursor-pointer
       `}
@@ -30,7 +30,7 @@ export default function MultiSelectPill({ label, selected, onClick }: MultiSelec
       role="checkbox"
       aria-checked={selected}
     >
-      {selected && <span className="mr-1.5">✓</span>}
+      {selected ? <span className="mr-1.5 text-[#beb086]">[x]</span> : <span className="mr-1.5 text-zinc-600">[ ]</span>}
       {label}
     </motion.button>
   );

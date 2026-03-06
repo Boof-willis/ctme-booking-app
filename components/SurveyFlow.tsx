@@ -222,9 +222,9 @@ export default function SurveyFlow() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-              className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-cyan-500/20 mb-4"
+              className="inline-flex h-16 w-16 items-center justify-center rounded-none bg-[#beb086]/10 border border-[#beb086]/20 mb-4"
             >
-              <span className="text-3xl">🎉</span>
+              <span className="text-3xl grayscale">🎉</span>
             </motion.div>
             <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
               You&apos;re booked!
@@ -232,9 +232,9 @@ export default function SurveyFlow() {
           </div>
 
           {slot && (
-            <div className="rounded-xl border border-white/[0.06] bg-[#16161F] p-4 mb-6">
-              <p className="text-sm text-zinc-400 mb-1">Your appointment</p>
-              <p className="text-white font-medium">
+            <div className="rounded-none border border-zinc-800 bg-black p-4 mb-6">
+              <p className="text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1">[ Your appointment ]</p>
+              <p className="text-[#beb086] font-mono">
                 {new Date(slot.startTime).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
@@ -251,19 +251,19 @@ export default function SurveyFlow() {
             </div>
           )}
 
-          <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-5 text-center">
-            <p className="text-white text-base">
-              We&apos;ll send a confirmation email to{' '}
-              <span className="font-medium text-cyan-400">{state.surveyData.email}</span>.
+          <div className="rounded-none border border-[#beb086]/20 bg-[#beb086]/5 p-5 text-center">
+            <p className="text-white font-mono text-sm">
+              &gt; We&apos;ll send a confirmation email to{' '}
+              <span className="font-bold text-[#beb086]">{state.surveyData.email}</span>.
             </p>
             {slot && (
-              <p className="text-zinc-400 text-sm mt-2">
-                See you on {new Date(slot.startTime).toLocaleDateString('en-US', {
+              <p className="text-zinc-500 font-mono text-xs mt-2">
+                [ See you on {new Date(slot.startTime).toLocaleDateString('en-US', {
                   weekday: 'long',
                   month: 'long',
                   day: 'numeric',
                   timeZone: tz,
-                })}!
+                })}! ]
               </p>
             )}
           </div>

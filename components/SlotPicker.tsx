@@ -269,7 +269,7 @@ export default function SlotPicker({
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
-              className="absolute z-20 top-full left-0 mt-1 w-56 rounded-xl border border-white/[0.08] bg-[#1a1a24] shadow-xl overflow-hidden"
+              className="absolute z-20 top-full left-0 mt-1 w-56 rounded-none border border-zinc-800 bg-black shadow-xl overflow-hidden"
             >
               <div className="py-1 max-h-64 overflow-y-auto">
                 {TIMEZONE_OPTIONS.map((opt) => {
@@ -283,15 +283,15 @@ export default function SlotPicker({
                         setTzPickerOpen(false);
                       }}
                       className={`
-                        w-full text-left px-3.5 py-2 text-sm transition-colors cursor-pointer
+                        w-full text-left px-3.5 py-2 text-sm font-mono transition-colors cursor-pointer
                         ${isActive
-                          ? 'text-cyan-400 bg-cyan-500/10'
-                          : 'text-zinc-300 hover:bg-white/[0.06] hover:text-white'
+                          ? 'text-[#beb086] bg-[#beb086]/10'
+                          : 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
                         }
                       `}
                     >
-                      {opt.label}
-                      <span className="ml-1.5 text-zinc-500">{getTimezoneAbbr(opt.value)}</span>
+                      {isActive ? '> ' : ''}{opt.label}
+                      <span className="ml-1.5 text-zinc-600">[{getTimezoneAbbr(opt.value)}]</span>
                     </button>
                   );
                 })}
@@ -319,23 +319,23 @@ export default function SlotPicker({
               type="button"
               onClick={() => navigateMonth(-1)}
               disabled={!canGoPrev}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+              className="p-1.5 rounded-none text-zinc-500 hover:text-[#beb086] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
               aria-label="Previous month"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter"/>
               </svg>
             </button>
-            <span className="text-sm font-semibold text-white">{monthLabel}</span>
+            <span className="text-sm font-bold font-mono text-white tracking-wider uppercase">[{monthLabel}]</span>
             <button
               type="button"
               onClick={() => navigateMonth(1)}
               disabled={!canGoNext}
-              className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
+              className="p-1.5 rounded-none text-zinc-500 hover:text-[#beb086] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
               aria-label="Next month"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter"/>
               </svg>
             </button>
           </div>
@@ -343,7 +343,7 @@ export default function SlotPicker({
           {/* Weekday headers */}
           <div className="grid grid-cols-7 gap-1 mb-1">
             {WEEKDAY_LABELS.map((label) => (
-              <div key={label} className="text-center text-xs font-medium text-zinc-500 py-1">
+              <div key={label} className="text-center text-xs font-mono font-bold text-zinc-600 py-1 uppercase tracking-wider">
                 {label}
               </div>
             ))}
@@ -367,22 +367,22 @@ export default function SlotPicker({
                   disabled={isDisabled}
                   onClick={() => handleDateClick(cell.key)}
                   className={`
-                    relative h-10 rounded-lg text-sm font-medium transition-all cursor-pointer
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500
+                    relative h-10 rounded-none text-sm font-mono transition-all cursor-pointer
+                    focus:outline-none focus-visible:ring-1 focus-visible:ring-[#beb086]
                     ${isSelected
-                      ? 'bg-cyan-500 text-white shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                      ? 'bg-[#beb086] text-black font-bold'
                       : isAvailable && isInRange
-                        ? 'text-white hover:bg-white/[0.08] active:bg-white/[0.12]'
-                        : 'text-zinc-600 cursor-default'
+                        ? 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
+                        : 'text-zinc-700 cursor-default'
                     }
                   `}
                 >
                   {cell.date.getDate()}
                   {isToday && !isSelected && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-cyan-500" />
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-none bg-[#beb086]" />
                   )}
                   {isAvailable && isInRange && !isSelected && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400" />
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-none bg-emerald-500/50" />
                   )}
                 </button>
               );
@@ -415,16 +415,16 @@ export default function SlotPicker({
                     onClick={() => onSelect(slot)}
                     whileTap={{ scale: 0.97 }}
                     className={`
-                      rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors cursor-pointer
-                      focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500
+                      rounded-none border px-3 py-2.5 text-sm font-mono transition-colors cursor-pointer
+                      focus:outline-none focus-visible:ring-1 focus-visible:ring-[#beb086]
                       ${isActive
-                        ? 'border-cyan-500/50 bg-cyan-500/15 text-white shadow-[0_0_12px_rgba(6,182,212,0.1)]'
-                        : 'border-white/[0.06] bg-[#16161F] text-zinc-300 hover:border-white/[0.12] hover:text-white'
+                        ? 'border-[#beb086] bg-[#beb086]/10 text-white'
+                        : 'border-zinc-800 bg-black text-zinc-400 hover:border-[#beb086] hover:text-white'
                       }
                     `}
                     aria-pressed={isActive}
                   >
-                    {formatTime(slot.startTime, displayTimezone)}
+                    {isActive ? '> ' : ''}{formatTime(slot.startTime, displayTimezone)}
                   </motion.button>
                 );
               })}
@@ -440,7 +440,7 @@ export default function SlotPicker({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="mt-6 rounded-xl border border-white/[0.08] bg-[#16161F] p-4"
+            className="mt-6 rounded-none border border-zinc-800 bg-black p-4"
           >
             <p className="text-sm text-zinc-400 mb-1">Selected time</p>
             <p className="text-white font-medium">
@@ -454,30 +454,29 @@ export default function SlotPicker({
               <p className="text-red-400 text-sm mt-2">{bookingError}</p>
             )}
 
-            <motion.button
-              type="button"
-              onClick={onConfirm}
-              disabled={isBooking}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="
-                mt-4 w-full rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500
-                py-3 text-base font-semibold text-white
-                shadow-[0_0_20px_rgba(59,130,246,0.25)]
-                transition-opacity hover:opacity-90
-                disabled:opacity-50 disabled:cursor-not-allowed
-                cursor-pointer
-              "
-            >
-              {isBooking ? (
-                <span className="inline-flex items-center gap-2">
-                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  Booking…
-                </span>
-              ) : (
-                'Confirm Booking'
-              )}
-            </motion.button>
+              <motion.button
+                type="button"
+                onClick={onConfirm}
+                disabled={isBooking}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                className="
+                  mt-4 w-full rounded-none bg-[#beb086]
+                  py-3 text-base font-bold text-black font-mono uppercase tracking-wider
+                  transition-colors hover:bg-[#a69970]
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  cursor-pointer
+                "
+              >
+                {isBooking ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                    Booking…
+                  </span>
+                ) : (
+                  '[ Confirm Booking ]'
+                )}
+              </motion.button>
           </motion.div>
         )}
       </AnimatePresence>

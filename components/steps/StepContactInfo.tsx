@@ -125,8 +125,8 @@ export default function StepContactInfo({
     }
   };
 
-  const inputBase = 'w-full rounded-xl border bg-[#16161F] px-4 py-3 text-white text-base placeholder:text-zinc-600 focus:outline-none focus:ring-1';
-  const inputNormal = 'border-white/[0.08] focus:border-cyan-500/50 focus:ring-cyan-500/30';
+  const inputBase = 'w-full rounded-none border border-zinc-800 bg-black px-4 py-3 text-white font-mono text-sm placeholder:text-zinc-600 focus:outline-none focus:ring-1';
+  const inputNormal = 'focus:border-[#beb086] focus:ring-[#beb086]';
   const inputError = 'border-red-500/50 focus:border-red-500 focus:ring-red-500/30';
 
   return (
@@ -141,8 +141,8 @@ export default function StepContactInfo({
       <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
         Great — let&apos;s find you a time to talk
       </h1>
-      <p className="text-zinc-400 text-base mb-8">
-        We&apos;ll use this to send your booking confirmation
+      <p className="font-mono text-[#beb086] text-sm mb-8">
+        &gt; We&apos;ll use this to send your booking confirmation
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -159,8 +159,8 @@ export default function StepContactInfo({
         />
 
         <div>
-          <label htmlFor="fullName" className="block text-sm font-medium text-zinc-300 mb-1.5">
-            Name
+          <label htmlFor="fullName" className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1.5">
+            [ Name ]
           </label>
           <input
             id="fullName"
@@ -174,12 +174,12 @@ export default function StepContactInfo({
             autoComplete="name"
             className={`${inputBase} ${nameError ? inputError : inputNormal}`}
           />
-          {nameError && <p className="mt-1.5 text-sm text-red-400">{nameError}</p>}
+          {nameError && <p className="mt-1.5 text-xs font-mono text-red-400">{nameError}</p>}
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-1.5">
-            Email
+          <label htmlFor="email" className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1.5">
+            [ Email ]
           </label>
           <input
             id="email"
@@ -193,12 +193,12 @@ export default function StepContactInfo({
             autoComplete="email"
             className={`${inputBase} ${emailError ? inputError : inputNormal}`}
           />
-          {emailError && <p className="mt-1.5 text-sm text-red-400">{emailError}</p>}
+          {emailError && <p className="mt-1.5 text-xs font-mono text-red-400">{emailError}</p>}
         </div>
 
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-zinc-300 mb-1.5">
-            Phone <span className="text-zinc-500 font-normal">(optional)</span>
+          <label htmlFor="phone" className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1.5">
+            [ Phone ] <span className="text-zinc-600 lowercase tracking-normal">(optional)</span>
           </label>
           <div className="flex gap-2">
             <input
@@ -207,8 +207,8 @@ export default function StepContactInfo({
               onChange={(e) => handleDialCodeChange(e.target.value)}
               aria-label="Country dial code"
               className={`
-                w-[72px] shrink-0 rounded-xl border bg-[#16161F] px-3 py-3
-                text-center text-white text-base
+                w-[72px] shrink-0 rounded-none border border-zinc-800 bg-black px-3 py-3
+                text-center text-white font-mono text-sm
                 focus:outline-none focus:ring-1
                 ${phoneError ? inputError : inputNormal}
               `}
@@ -227,7 +227,7 @@ export default function StepContactInfo({
               className={`${inputBase} ${phoneError ? inputError : inputNormal}`}
             />
           </div>
-          {phoneError && <p className="mt-1.5 text-sm text-red-400">{phoneError}</p>}
+          {phoneError && <p className="mt-1.5 text-xs font-mono text-red-400">{phoneError}</p>}
         </div>
 
         <div>
@@ -239,27 +239,27 @@ export default function StepContactInfo({
                 setAgreedToTos(e.target.checked);
                 if (tosError) setTosError('');
               }}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/20 bg-[#16161F] accent-cyan-500"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded-none border-zinc-800 bg-black accent-[#beb086]"
             />
-            <span className={`text-sm leading-snug ${tosError ? 'text-red-400' : 'text-zinc-400'}`}>
+            <span className={`text-sm font-mono leading-relaxed ${tosError ? 'text-red-400' : 'text-zinc-400'}`}>
               I agree to the{' '}
               <a
                 href="https://cryptotaxmadeeasy.com/terms-of-service/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-white hover:text-cyan-400 transition-colors"
+                className="text-[#beb086] hover:underline transition-colors"
               >
                 Terms of Service
               </a>{' '}
               and consent to being contacted by Crypto Tax Made Easy.
             </span>
           </label>
-          {tosError && <p className="mt-1.5 ml-7 text-sm text-red-400">{tosError}</p>}
+          {tosError && <p className="mt-1.5 ml-7 text-xs font-mono text-red-400">{tosError}</p>}
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-3">
-            <p className="text-sm text-red-400">{error}</p>
+          <div className="rounded-none border border-red-500/20 bg-red-500/10 p-3">
+            <p className="text-xs font-mono text-red-400">{error}</p>
           </div>
         )}
 
@@ -269,21 +269,20 @@ export default function StepContactInfo({
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="
-            w-full rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500
-            py-3.5 text-base font-semibold text-white
-            shadow-[0_0_20px_rgba(59,130,246,0.25)]
-            transition-opacity hover:opacity-90
+            w-full rounded-none bg-[#beb086]
+            py-3.5 text-base font-bold text-black font-mono uppercase tracking-wider
+            transition-colors hover:bg-[#a69970]
             disabled:opacity-50 disabled:cursor-not-allowed
             cursor-pointer
           "
         >
           {isSubmitting ? (
             <span className="inline-flex items-center gap-2">
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
               Saving…
             </span>
           ) : (
-            'See Available Times →'
+            '[ See Available Times ]'
           )}
         </motion.button>
       </form>

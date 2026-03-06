@@ -20,17 +20,17 @@ export default function ProgressBar({ currentStep }: ProgressBarProps) {
 
   return (
     <div className="w-full mb-8">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-medium text-cyan-400">{currentLabel}</span>
+      <div className="flex items-center justify-between mb-2 font-mono">
+        <span className="text-xs uppercase tracking-wider text-[#beb086]">{currentLabel}</span>
         <span className="text-xs text-zinc-500">
-          {displayStep} / {totalSegments}
+          [ {displayStep} / {totalSegments} ]
         </span>
       </div>
 
       {/* Progress track */}
-      <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="relative h-[2px] w-full bg-zinc-800">
         <motion.div
-          className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-500"
+          className="absolute left-0 top-0 h-full bg-[#beb086]"
           initial={{ width: '2%' }}
           animate={{ width: `${clampedProgress}%` }}
           transition={{ duration: 0.4, ease: 'easeOut' }}

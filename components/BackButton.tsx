@@ -14,8 +14,8 @@ export default function BackButton({ onClick }: BackButtonProps) {
       whileHover={{ x: -2 }}
       whileTap={{ scale: 0.95 }}
       className="
-        mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 transition-colors
-        hover:text-white focus:outline-none focus-visible:text-white
+        mb-4 inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-zinc-500 transition-colors
+        hover:text-[#beb086] focus:outline-none focus-visible:text-[#beb086]
         cursor-pointer
       "
       aria-label="Go back to previous step"
