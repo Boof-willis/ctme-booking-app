@@ -109,31 +109,35 @@ export async function POST(req: NextRequest) {
       const complexityTier =
         complexityScore <= 20 ? 'Standard' : complexityScore <= 50 ? 'Complex' : 'High Complexity';
 
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contactId,
-          firstName: sanitize(firstName),
-          lastName: lastName ? sanitize(lastName) : undefined,
-          email: sanitize(email),
-          phone: phone ? sanitize(phone) : undefined,
-          country: surveyData?.country,
-          otherCountryName: surveyData?.otherCountryName,
-          otherCountryCode: surveyData?.otherCountryCode,
-          taxYears: surveyData?.taxYears,
-          blockchains: surveyData?.blockchains,
-          hasTaxSoftware: surveyData?.hasTaxSoftware,
-          taxSoftwareName: surveyData?.taxSoftwareName,
-          agreedToTos: surveyData?.agreedToTos ?? false,
-          utmParams: surveyData?.utmParams,
-          complexityScore,
-          complexityTier,
-          taxYearsCount: taxYears.length,
-          chainCount: blockchains.length,
-          hasPreR2021: taxYears.includes('Before 2021'),
-        }),
-      }).catch((err) => console.error('Webhook fire failed:', err));
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contactId,
+            firstName: sanitize(firstName),
+            lastName: lastName ? sanitize(lastName) : undefined,
+            email: sanitize(email),
+            phone: phone ? sanitize(phone) : undefined,
+            country: surveyData?.country,
+            otherCountryName: surveyData?.otherCountryName,
+            otherCountryCode: surveyData?.otherCountryCode,
+            taxYears: surveyData?.taxYears,
+            blockchains: surveyData?.blockchains,
+            hasTaxSoftware: surveyData?.hasTaxSoftware,
+            taxSoftwareName: surveyData?.taxSoftwareName,
+            agreedToTos: surveyData?.agreedToTos ?? false,
+            utmParams: surveyData?.utmParams,
+            complexityScore,
+            complexityTier,
+            taxYearsCount: taxYears.length,
+            chainCount: blockchains.length,
+            hasPreR2021: taxYears.includes('Before 2021'),
+          }),
+        });
+      } catch (err) {
+        console.error('Webhook fire failed:', err);
+      }
     }
 
     return NextResponse.json({ contactId });
