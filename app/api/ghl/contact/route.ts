@@ -24,6 +24,34 @@ function getIP(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 }
 
+const STANDARD_COUNTRIES = ['Australia', 'Canada', 'New Zealand', 'UK', 'USA'];
+
+function computeComplexityScore(
+  taxYears: string[],
+  blockchains: string[],
+  hasTaxSoftware: boolean,
+  country: string,
+): number {
+  let score = 0;
+
+  if (taxYears.includes('2023')) score += 10;
+  if (taxYears.includes('2022')) score += 10;
+  if (taxYears.includes('2021')) score += 15;
+  if (taxYears.includes('Before 2021')) score += 25;
+  if (taxYears.length > 2) score += 10;
+
+  if (blockchains.length >= 3) score += 15;
+  for (const chain of ['Ethereum', 'Arbitrum', 'Base', 'Avalanche', 'Other']) {
+    if (blockchains.includes(chain)) score += 10;
+  }
+
+  if (!hasTaxSoftware) score += 10;
+
+  if (country && !STANDARD_COUNTRIES.includes(country)) score += 15;
+
+  return score;
+}
+
 export async function POST(req: NextRequest) {
   const ip = getIP(req);
   if (!checkRateLimit(ip)) {
@@ -72,6 +100,15 @@ export async function POST(req: NextRequest) {
 
     const webhookUrl = process.env.GHL_CONTACT_WEBHOOK_URL;
     if (webhookUrl) {
+      const taxYears: string[] = surveyData?.taxYears || [];
+      const blockchains: string[] = surveyData?.blockchains || [];
+      const hasTaxSoftware: boolean = surveyData?.hasTaxSoftware ?? true;
+      const country: string = surveyData?.country || '';
+
+      const complexityScore = computeComplexityScore(taxYears, blockchains, hasTaxSoftware, country);
+      const complexityTier =
+        complexityScore <= 20 ? 'Standard' : complexityScore <= 50 ? 'Complex' : 'High Complexity';
+
       fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -90,6 +127,11 @@ export async function POST(req: NextRequest) {
           taxSoftwareName: surveyData?.taxSoftwareName,
           agreedToTos: surveyData?.agreedToTos ?? false,
           utmParams: surveyData?.utmParams,
+          complexityScore,
+          complexityTier,
+          taxYearsCount: taxYears.length,
+          chainCount: blockchains.length,
+          hasPreR2021: taxYears.includes('Before 2021'),
         }),
       }).catch((err) => console.error('Webhook fire failed:', err));
     }

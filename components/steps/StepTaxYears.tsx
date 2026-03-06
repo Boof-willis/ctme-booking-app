@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import MultiSelectPill from '@/components/MultiSelectPill';
 import BackButton from '@/components/BackButton';
 import { TAX_YEARS } from '@/lib/constants';
@@ -13,6 +13,16 @@ interface StepTaxYearsProps {
   onBack: () => void;
 }
 
+function getReassuranceMessage(selected: TaxYear[]): string | null {
+  if (selected.includes('Before 2021' as TaxYear)) {
+    return 'We handle historical cleanups all the time. Even if your records are incomplete, we can reconstruct what\u2019s needed and get you fully compliant.';
+  }
+  if (selected.length >= 2) {
+    return 'Multi-year cleanups are a normal part of what we do. We\u2019ll build an accurate picture across all your years.';
+  }
+  return null;
+}
+
 export default function StepTaxYears({ selected, onChange, onNext, onBack }: StepTaxYearsProps) {
   const toggle = (year: TaxYear) => {
     onChange(
@@ -21,6 +31,8 @@ export default function StepTaxYears({ selected, onChange, onNext, onBack }: Ste
         : [...selected, year]
     );
   };
+
+  const reassurance = getReassuranceMessage(selected);
 
   return (
     <motion.div
@@ -46,6 +58,21 @@ export default function StepTaxYears({ selected, onChange, onNext, onBack }: Ste
           />
         ))}
       </div>
+
+      <AnimatePresence mode="wait">
+        {reassurance && (
+          <motion.div
+            key={reassurance}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="mb-6 border-l-3 border-cyan-500 bg-white/[0.04] rounded-r-md p-3"
+          >
+            <p className="text-sm text-white/70">{reassurance}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.button
         type="button"
