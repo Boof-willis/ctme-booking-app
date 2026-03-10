@@ -48,6 +48,22 @@ function buildCustomFields(data: SurveyData): Array<{ key: string; field_value: 
   return fields;
 }
 
+function buildAttributionSource(data: SurveyData): Record<string, string> {
+  const utm = data.utmParams;
+  const attribution: Record<string, string> = {
+    url: 'https://cryptotaxmadeeasy.com',
+  };
+
+  if (utm.utm_source) attribution.utmSource = utm.utm_source;
+  if (utm.utm_medium) attribution.utmMedium = utm.utm_medium;
+  if (utm.utm_campaign) attribution.campaign = utm.utm_campaign;
+  if (utm.utm_content) attribution.utmContent = utm.utm_content;
+  if (utm.gclid) attribution.gclid = utm.gclid;
+  if (utm.fbclid) attribution.fbclid = utm.fbclid;
+
+  return attribution;
+}
+
 export async function createOrUpdateContact(data: SurveyData): Promise<Record<string, unknown>> {
   const customFields = buildCustomFields(data);
 
@@ -55,10 +71,18 @@ export async function createOrUpdateContact(data: SurveyData): Promise<Record<st
     locationId: process.env.GHL_LOCATION_ID,
     firstName: data.firstName,
     email: data.email,
+    source: 'Booking Form',
   };
 
   if (customFields.length > 0) {
     body.customFields = customFields;
+  }
+
+  const attributionSource = buildAttributionSource(data);
+  const hasUtmData = Object.keys(attributionSource).length > 1;
+  if (hasUtmData) {
+    body.attributionSource = attributionSource;
+    body.lastAttributionSource = attributionSource;
   }
 
   if (data.lastName) body.lastName = data.lastName;
@@ -77,44 +101,19 @@ export async function createOrUpdateContact(data: SurveyData): Promise<Record<st
     body.country = countryCodeMap[data.country];
   }
 
-  console.log('GHL create contact request:', JSON.stringify(body, null, 2));
+  console.log('GHL upsert contact request:', JSON.stringify(body, null, 2));
 
-  const res = await fetch(`${GHL_BASE}/contacts/`, {
+  const res = await fetch(`${GHL_BASE}/contacts/upsert`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(body),
   });
 
   const responseText = await res.text();
-  console.log('GHL create contact response:', res.status, responseText);
-
-  if (res.status === 400) {
-    try {
-      const err = JSON.parse(responseText);
-      const existingId = err?.meta?.contactId;
-      if (existingId && /duplicate/i.test(err?.message || '')) {
-        console.log('Duplicate contact detected, updating existing:', existingId);
-        const updateBody: Record<string, unknown> = { firstName: data.firstName };
-        if (customFields.length > 0) updateBody.customFields = customFields;
-        if (data.lastName) updateBody.lastName = data.lastName;
-        if (data.phone) updateBody.phone = data.phone;
-        if (body.country) updateBody.country = body.country;
-
-        const updateRes = await fetch(`${GHL_BASE}/contacts/${existingId}`, {
-          method: 'PUT',
-          headers: getHeaders(),
-          body: JSON.stringify(updateBody),
-        });
-        const updateText = await updateRes.text();
-        console.log('GHL update contact response:', updateRes.status, updateText);
-
-        return { contact: { id: existingId } };
-      }
-    } catch { /* fall through to generic error */ }
-  }
+  console.log('GHL upsert contact response:', res.status, responseText);
 
   if (!res.ok) {
-    throw new Error(`GHL contact creation failed: ${res.status} ${responseText}`);
+    throw new Error(`GHL contact upsert failed: ${res.status} ${responseText}`);
   }
 
   try {
