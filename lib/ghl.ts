@@ -71,7 +71,7 @@ export async function createOrUpdateContact(data: SurveyData): Promise<Record<st
     locationId: process.env.GHL_LOCATION_ID,
     firstName: data.firstName,
     email: data.email,
-    source: 'Booking Form',
+    source: 'Booking App',
   };
 
   if (customFields.length > 0) {

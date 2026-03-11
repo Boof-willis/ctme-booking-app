@@ -128,6 +128,7 @@ export async function POST(req: NextRequest) {
             taxSoftwareName: surveyData?.taxSoftwareName,
             agreedToTos: surveyData?.agreedToTos ?? false,
             utmParams: surveyData?.utmParams,
+            ockno_id: surveyData?.utmParams?.ockno_id,
             complexityScore,
             complexityTier,
             taxYearsCount: taxYears.length,
