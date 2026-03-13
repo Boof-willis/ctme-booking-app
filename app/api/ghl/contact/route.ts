@@ -107,7 +107,13 @@ export async function POST(req: NextRequest) {
 
       const complexityScore = computeComplexityScore(taxYears, blockchains, hasTaxSoftware, country);
       const complexityTier =
-        complexityScore <= 20 ? 'Standard' : complexityScore <= 50 ? 'Complex' : 'High Complexity';
+        complexityScore <= 20
+          ? 'Tier 1 - Simple'
+          : complexityScore <= 45
+            ? 'Tier 2 - Moderate DeFi / NFT trader'
+            : complexityScore <= 75
+              ? 'Tier 3 - High Complexity / Degen'
+              : 'Tier 4 - Whale / Enterprise';
 
       try {
         await fetch(webhookUrl, {
