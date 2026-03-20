@@ -29,7 +29,7 @@ export function Hero() {
         <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed">
           We manually review every transaction, fix what software gets wrong,
           and deliver an audit-ready report your accountant can file.
-          Flat-rate pricing. 20 minutes of your time.
+          Flat-rate pricing. Starts with a free 15-minute call.
         </p>
         
         {/* Group 4: Trust metrics + Buttons */}

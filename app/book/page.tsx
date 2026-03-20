@@ -1,0 +1,29 @@
+import Image from 'next/image';
+import BookingFlow from '@/components/BookingFlow';
+
+export default function BookPage() {
+  return (
+    <main className="min-h-screen flex flex-col items-center justify-start px-4 sm:px-6 py-4 sm:py-6">
+      <div className="mb-3 sm:mb-4 w-full flex justify-center opacity-80">
+        <Image
+          src="/ctme-logo.png"
+          alt="Crypto Tax Made Easy"
+          width={1920}
+          height={1080}
+          className="w-[140px] sm:w-[180px] h-auto object-contain"
+          priority
+        />
+      </div>
+
+      <div className="w-full max-w-[560px]">
+        <div className="rounded-none border border-zinc-800 bg-zinc-950 p-6 sm:p-8 shadow-2xl shadow-black/40">
+          <BookingFlow />
+        </div>
+
+        <p className="mt-6 text-center text-xs text-zinc-600">
+          Your information is secure and will never be shared with third parties.
+        </p>
+      </div>
+    </main>
+  );
+}

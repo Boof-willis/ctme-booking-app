@@ -17,7 +17,7 @@ Eradicate all generic AI patterns. This audience is crypto-native, technically s
 - **Core claim:** 90% of crypto tax software overestimates capital gains
 - **Proof:** $21.8M+ saved for clients, 200+ clients served, 4.96-star review average, 5+ years experience
 - **Team:** ~12 specialists (chartered accountants, management accountants, data scientists)
-- **Service model:** Client spends 20 minutes connecting wallets/exchanges → CTME team manually reconciles every transaction → delivers audit-ready report the client's CPA can file
+- **Service model:** Client hops on a free 15-minute consultation call → connects wallets/exchanges → CTME team manually reconciles every transaction → delivers audit-ready report the client's CPA can file
 - **Pricing model:** Flat-rate based on transaction volume. No hourly billing. Commonly 5x cheaper than traditional CPA firms.
 - **Coverage:** USA, Australia, Canada, UK, New Zealand
 - **Specialties:** DeFi (yield farming, LPs, staking, lending), NFTs/NFTfi, Solana ecosystem, Bitcoin Ordinals/BRC-20, Hyperliquid perps, on-chain perps, multi-chain activity, bridges, airdrops
@@ -281,15 +281,15 @@ The pivot from pain to relief. Make the process feel absurdly simple.
 
 **Structure:**
 - Section label: "HOW IT WORKS"
-- Headline: "20 Minutes From You. We Handle Everything Else."
+- Headline: "4 Steps. One Call to Get Started."
 - **4-step process** displayed as a horizontal timeline on desktop, vertical on mobile:
-  1. **20-Minute Setup** — Connect wallets and exchanges. That's your part.
-  2. **Fixed-Price Quote** — One flat price. No hourly billing. No surprises.
+  1. **Free Consultation Call** — Hop on a quick call with our team. We review your situation and give you a straight answer. No commitment.
+  2. **Connect & Quote** — Connect wallets and exchanges. Our team reviews your data and sends one flat, all-in price. No hourly billing. No surprises.
   3. **Specialist Reconciliation** — Our team manually reviews every transaction.
   4. **Audit-Ready Report** — Clean report your CPA can file. Done.
 - Each step: number (accent color, large mono), heading, 1-sentence description
 - Connecting line or dots between steps (accent color, CSS-only)
-- Optional: Small "time estimate" badge per step ("~20 min", "~24 hrs", "~1 week", "Same day")
+- Optional: Small "time estimate" badge per step ("~15 min", "~24 hrs", "~1 week", "Same day")
 
 **CTA after section:** "Get Your Free Quote →"
 
@@ -483,7 +483,7 @@ Each landing page targets a different ICP/campaign. The page structure is the sa
 - **Hero stat:** "$21.8M+" with subtext "saved for clients"
 - **Problem section:** Focus on time/overwhelm (thousands of transactions, CPA doesn't understand crypto, DIY takes weeks)
 - **Testimonial emphasis:** Corey (stress relief), Mason (professional and to the point)
-- **How It Works emphasis:** The 20-minute setup, hands-off process
+- **How It Works emphasis:** The free consultation call, hands-off process
 
 ### LP3: IRS Compliance
 - **Hero headline:** "The IRS Is Watching Your Crypto."

@@ -102,7 +102,7 @@ $21.8M+
 [Subheadline]
 We manually review every transaction, fix what software gets wrong,
 and deliver an audit-ready report your accountant can file.
-Flat-rate pricing. 20 minutes of your time.
+Flat-rate pricing. Starts with a free 15-minute call.
 
 [Trust strip — inline row, mono font, muted color]
 ★ 4.96 Average Review   ·   200+ Clients   ·   5+ Years Experience
@@ -209,22 +209,22 @@ Design: `bg-ctme-subtle border border-ctme-border rounded-2xl p-8 text-center`. 
 HOW IT WORKS
 
 [Headline]
-4 Steps. 20 Minutes of Your Time. Done.
+4 Steps. One Call to Get Started.
 ```
 
 **4 Steps** (horizontal timeline on desktop, vertical on mobile):
 
 **Step 1:**
 - Number: `01` (accent, mono, large)
-- Time badge: `~20 min` (small pill, `bg-ctme-accent/10 text-ctme-accent`)
-- Heading: Quick Setup
-- Body: Connect your wallets and exchanges to our recommended crypto tax software and grant us accountant-level access. That's it. That's your part.
+- Time badge: `~15 min` (small pill, `bg-ctme-accent/10 text-ctme-accent`)
+- Heading: Free Consultation Call
+- Body: Hop on a quick call with our team. We review your situation, look at what you're working with, and give you a straight answer on what it'll take to get your taxes sorted. No commitment.
 
 **Step 2:**
 - Number: `02`
 - Time badge: `~24 hrs`
-- Heading: Fixed-Price Quote
-- Body: Our team reviews your situation and sends one flat, all-in price. No hourly billing. No scope creep. No surprise invoices.
+- Heading: Connect & Quote
+- Body: Connect your wallets and exchanges to our recommended crypto tax software and grant us accountant-level access. Our team reviews your data and sends one flat, all-in price. No hourly billing. No surprise invoices.
 
 **Step 3:**
 - Number: `03`
@@ -342,7 +342,7 @@ Crypto-Native. Not Crypto-Adjacent.
 | Crypto expertise | Minimal to none | Automated only | Crypto-native team |
 | DeFi/NFT handling | "How much did you put in?" | Breaks on complex activity | Manual review of every transaction |
 | Accuracy | Depends on their knowledge | 90% overreport gains | Audit-ready, manually verified |
-| Your time investment | Hours of explanation | Hours of fixing errors | 20 minutes |
+| Your time investment | Hours of explanation | Hours of fixing errors | One 15-min call |
 | Result | Risky return, high cost | Inflated tax bill | Accurate report, maximum savings |
 
 Design: Three cards or columns. CTME column gets `border-ctme-accent` border and a subtle accent glow. CPA and Software columns are `border-ctme-border` with muted text showing their weaknesses.
@@ -551,13 +551,13 @@ When building the hero, verify the headline matches the ad copy variants that wi
 **Google Search ads sending traffic to this page:**
 - "Crypto Tax Done For You. Flat Rate. No Hourly Billing."
 - "Crypto Tax Accountant. 200+ Clients, $21.8M Saved. Get a Free Quote."
-- "DeFi, NFTs, Multi-Chain? We Handle It All. 20 Min Setup."
+- "DeFi, NFTs, Multi-Chain? We Handle It All. 15-Min Consultation Call."
 
 **Meta ads sending traffic to this page:**
 - "I had 3,000+ DeFi and NFT transactions. My accountant said 'just tell me what you put in and what it's worth now.' That advice would have cost me tens of thousands..."
 - "4,000 transactions. 6 blockchains. Your accountant has no idea what yield farming is. We do..."
 
-The hero headline "Your Crypto Taxes, Done For You." matches all of these. The subheadline reinforces the flat-rate and 20-minute hooks. The $21.8M stat matches the Google ad variant. Message match is confirmed.
+The hero headline "Your Crypto Taxes, Done For You." matches all of these. The subheadline reinforces the flat-rate pricing and free consultation call hooks. The $21.8M stat matches the Google ad variant. Message match is confirmed.
 
 ---
 

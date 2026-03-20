@@ -105,7 +105,7 @@ export function WhyCTME() {
               </li>
               <li>
                 <div className="font-mono text-xs uppercase tracking-wider mb-1 text-[#beb086]">Your Time Investment</div>
-                <div className="font-medium">20 minutes</div>
+                <div className="font-medium">One 15-min call</div>
               </li>
               <li className="pt-4 border-t border-zinc-800">
                 <div className="font-mono text-xs uppercase tracking-wider mb-1 text-[#beb086]">Result</div>

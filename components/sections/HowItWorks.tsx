@@ -2,15 +2,15 @@ export function HowItWorks() {
   const steps = [
     {
       num: "01",
-      time: "~20 min",
-      title: "Quick Setup",
-      desc: "Connect your wallets and exchanges to our recommended crypto tax software and grant us accountant-level access. That's it. That's your part."
+      time: "~15 min",
+      title: "Free Consultation Call",
+      desc: "Hop on a quick call with our team. We review your situation, look at what you're working with, and give you a straight answer on what it'll take to get your taxes sorted. No commitment."
     },
     {
       num: "02",
       time: "~24 hrs",
-      title: "Fixed-Price Quote",
-      desc: "Our team reviews your situation and sends one flat, all-in price. No hourly billing. No scope creep. No surprise invoices."
+      title: "Connect & Quote",
+      desc: "Connect your wallets and exchanges to our recommended crypto tax software and grant us accountant-level access. Our team reviews your data and sends one flat, all-in price. No hourly billing. No surprise invoices."
     },
     {
       num: "03",
@@ -34,7 +34,7 @@ export function HowItWorks() {
             How It Works
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
-            4 Steps. 20 Minutes of Your Time. Done.
+            4 Steps. One Call to Get Started.
           </h2>
         </div>
 
