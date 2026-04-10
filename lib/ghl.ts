@@ -200,6 +200,25 @@ export async function fetchAvailableSlots(
   }
 }
 
+export async function updateContactCustomField(
+  contactId: string,
+  fieldKey: string,
+  fieldValue: string
+): Promise<void> {
+  const res = await fetch(`${GHL_BASE}/contacts/${contactId}`, {
+    method: 'PUT',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      customFields: [{ key: fieldKey, field_value: fieldValue }],
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GHL custom field update failed: ${res.status} ${text}`);
+  }
+}
+
 export async function createAppointment(
   contactId: string,
   startTime: string,

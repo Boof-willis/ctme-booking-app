@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useSurveyState } from '@/hooks/useSurveyState';
 import ProgressBar from '@/components/ProgressBar';
@@ -18,6 +19,7 @@ import { STEPS } from '@/lib/constants';
 
 export default function SurveyFlow() {
   const state = useSurveyState();
+  const router = useRouter();
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
   const [flowComplete, setFlowComplete] = useState(false);
@@ -117,9 +119,15 @@ export default function SurveyFlow() {
     const data = await res.json();
     state.setAppointmentId(data.appointmentId);
     trackAppointmentBooked();
+
+    const hasSoftware = state.surveyData.hasTaxSoftware ? 'yes' : 'no';
+    try {
+      sessionStorage.setItem('ctme_contact_id', state.surveyData.contactId || '');
+    } catch { /* unavailable */ }
+
     state.completeFlow();
-    setFlowComplete(true);
-  }, [state]);
+    router.push(`/consultation/thank-you?has_software=${hasSoftware}`);
+  }, [state, router]);
 
   const handleSoftwareSelect = useCallback(
     (hasSoftware: boolean, name?: TaxSoftware) => {
