@@ -191,7 +191,7 @@ export function SetupCompleteButton({
             Updating...
           </span>
         ) : disabled ? (
-          '[ Complete step 1 first ]'
+          '[ Complete the steps above, then come back here to confirm ]'
         ) : (
           '[ I\'ve completed setup — I\'m ready for my call ]'
         )}
