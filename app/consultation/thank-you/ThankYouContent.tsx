@@ -80,10 +80,16 @@ export default function ThankYouContent() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem('ctme_contact_id');
-      if (stored) setContactId(stored);
-    } catch { /* unavailable */ }
+    const params = new URLSearchParams(window.location.search);
+    const urlId = params.get('contact_id');
+    if (urlId) {
+      setContactId(urlId);
+    } else {
+      try {
+        const stored = sessionStorage.getItem('ctme_contact_id');
+        if (stored) setContactId(stored);
+      } catch { /* unavailable */ }
+    }
     setHydrated(true);
   }, []);
 
