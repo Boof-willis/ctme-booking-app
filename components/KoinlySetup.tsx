@@ -1,20 +1,68 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export function VideoPlayer({ src }: { src: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.play().catch(() => {});
+  }, []);
+
+  const handleUnmute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+    setMuted(false);
+    setHasStarted(true);
+    if (video.paused) video.play();
+  };
+
+  const handlePlay = () => setHasStarted(true);
+  const handleVolumeChange = () => {
+    if (videoRef.current) setMuted(videoRef.current.muted);
+  };
+
   return (
-    <div className="w-full rounded-none border border-zinc-800 overflow-hidden bg-black mb-6">
+    <div className="relative w-full rounded-none border border-zinc-800 overflow-hidden bg-black mb-6 group">
       <video
+        ref={videoRef}
         className="w-full h-auto"
         controls
-        preload="metadata"
+        preload="auto"
         playsInline
+        muted
+        onPlay={handlePlay}
+        onVolumeChange={handleVolumeChange}
       >
         <source src={src} type="video/mp4" />
-        Your browser does not support the video tag.
       </video>
+
+      {muted && (
+        <button
+          onClick={handleUnmute}
+          className="absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity hover:bg-black/30 cursor-pointer"
+        >
+          <div className="flex flex-col items-center gap-3">
+            {!hasStarted && (
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-[#beb086] flex items-center justify-center shadow-lg shadow-black/50">
+                <svg className="w-7 h-7 sm:w-9 sm:h-9 text-black ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            )}
+            <span className="text-white text-xs font-mono bg-black/60 px-3 py-1.5 border border-zinc-700">
+              {hasStarted ? '[ Click to unmute ]' : '[ Tap to play with sound ]'}
+            </span>
+          </div>
+        </button>
+      )}
     </div>
   );
 }
@@ -43,7 +91,13 @@ export function Step({
   );
 }
 
-export function KoinlySteps({ hasButton = true }: { hasButton?: boolean }) {
+export function KoinlySteps({
+  hasButton = true,
+  onKoinlyClick,
+}: {
+  hasButton?: boolean;
+  onKoinlyClick?: () => void;
+}) {
   return (
     <div className="space-y-4 mb-8">
       <Step number={1} title="Create your free Koinly account">
@@ -51,6 +105,7 @@ export function KoinlySteps({ hasButton = true }: { hasButton?: boolean }) {
           href="https://koinly.io/?via=E10BD73A&utm_source=affiliate"
           target="_blank"
           rel="noopener noreferrer"
+          onClick={onKoinlyClick}
           className="inline-flex items-center gap-2 text-[#beb086] hover:text-[#a69970] transition-colors font-mono text-sm mt-1"
         >
           Go to Koinly
@@ -92,7 +147,13 @@ export function KoinlySteps({ hasButton = true }: { hasButton?: boolean }) {
   );
 }
 
-export function SetupCompleteButton({ contactId }: { contactId: string }) {
+export function SetupCompleteButton({
+  contactId,
+  disabled = false,
+}: {
+  contactId: string;
+  disabled?: boolean;
+}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -121,14 +182,16 @@ export function SetupCompleteButton({ contactId }: { contactId: string }) {
     <>
       <button
         onClick={handleSetupComplete}
-        disabled={loading}
-        className="w-full rounded-none border border-[#beb086] bg-[#beb086] text-black font-mono text-sm font-bold py-4 px-6 hover:bg-[#a69970] hover:border-[#a69970] transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+        disabled={loading || disabled}
+        className="w-full rounded-none border border-[#beb086] bg-[#beb086] text-black font-mono text-sm font-bold py-4 px-6 hover:bg-[#a69970] hover:border-[#a69970] transition-colors disabled:opacity-40 disabled:cursor-not-allowed mb-6"
       >
         {loading ? (
           <span className="inline-flex items-center gap-2">
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
             Updating...
           </span>
+        ) : disabled ? (
+          '[ Complete step 1 first ]'
         ) : (
           '[ I\'ve completed setup — I\'m ready for my call ]'
         )}

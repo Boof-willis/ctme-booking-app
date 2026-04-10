@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   VideoPlayer,
   KoinlySteps,
@@ -50,6 +50,9 @@ function YesTrack() {
 }
 
 function NoTrack({ contactId }: { contactId: string }) {
+  const [koinlyClicked, setKoinlyClicked] = useState(false);
+  const handleKoinlyClick = useCallback(() => setKoinlyClicked(true), []);
+
   return (
     <>
       <VideoPlayer src="https://assets.cdn.filesafe.space/bkl1s4il2Wd9IOmUteYI/media/69d86836019dc508d3e14797.mp4" />
@@ -63,8 +66,8 @@ function NoTrack({ contactId }: { contactId: string }) {
         </p>
       </div>
 
-      <KoinlySteps />
-      <SetupCompleteButton contactId={contactId} />
+      <KoinlySteps onKoinlyClick={handleKoinlyClick} />
+      <SetupCompleteButton contactId={contactId} disabled={!koinlyClicked} />
       <GoogleMeetReminder />
     </>
   );
