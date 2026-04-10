@@ -14,7 +14,7 @@ export default function SetupContent() {
 
   return (
     <div className="rounded-none border border-zinc-800 bg-zinc-950 p-6 sm:p-8 shadow-2xl shadow-black/40">
-      <VideoPlayer src="/Quick-Reminder-Tax-Software.mp4" />
+      <VideoPlayer src="https://assets.cdn.filesafe.space/bkl1s4il2Wd9IOmUteYI/media/69d69623e84e918446c3431f.mp4" />
 
       <div className="mb-6">
         <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">

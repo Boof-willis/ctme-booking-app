@@ -12,7 +12,7 @@ import {
 function YesTrack() {
   return (
     <>
-      <VideoPlayer src="/Landing-Page-Google-Meet.mp4" />
+      <VideoPlayer src="https://assets.cdn.filesafe.space/bkl1s4il2Wd9IOmUteYI/media/69d86836982fd67a35ff5991.mp4" />
 
       <div className="text-center mb-8">
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-none bg-[#beb086]/10 border border-[#beb086]/20 mb-4">
@@ -52,7 +52,7 @@ function YesTrack() {
 function NoTrack({ contactId }: { contactId: string }) {
   return (
     <>
-      <VideoPlayer src="/Landing-Page-Software-Setup.mp4" />
+      <VideoPlayer src="https://assets.cdn.filesafe.space/bkl1s4il2Wd9IOmUteYI/media/69d86836019dc508d3e14797.mp4" />
 
       <div className="mb-6">
         <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
