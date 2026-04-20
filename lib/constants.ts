@@ -71,6 +71,16 @@ export const GHL_CUSTOM_FIELDS = {
   taxSoftwareName: 'if_yes_which_crypto_tax_software',
   ocknoId: 'ockno_id',
   agreedToTos: 'agreed_to_tos',
+  utmSource: 'utm_source',
+  utmMedium: 'utm_medium',
+  utmCampaign: 'utm_campaign',
+  utmContent: 'utm_content',
+  utmTerm: 'utm_term',
+  placement: 'placement',
+  siteSourceName: 'site_source_name',
+  landingUrl: 'landing_url',
+  gclid: 'gclid',
+  fbclid: 'fbclid',
 } as const;
 
 export const SESSION_KEYS = {

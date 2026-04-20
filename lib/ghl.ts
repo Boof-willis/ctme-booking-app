@@ -45,19 +45,34 @@ function buildCustomFields(data: SurveyData): Array<{ key: string; field_value: 
   set(GHL_CUSTOM_FIELDS.ocknoId, data.utmParams.ockno_id);
   set(GHL_CUSTOM_FIELDS.agreedToTos, data.agreedToTos === true ? 'Yes' : data.agreedToTos === false ? 'No' : undefined);
 
+  const utm = data.utmParams;
+  set(GHL_CUSTOM_FIELDS.utmSource, utm.utm_source);
+  set(GHL_CUSTOM_FIELDS.utmMedium, utm.utm_medium);
+  set(GHL_CUSTOM_FIELDS.utmCampaign, utm.utm_campaign);
+  set(GHL_CUSTOM_FIELDS.utmContent, utm.utm_content);
+  set(GHL_CUSTOM_FIELDS.utmTerm, utm.utm_term);
+  set(GHL_CUSTOM_FIELDS.placement, utm.placement);
+  set(GHL_CUSTOM_FIELDS.siteSourceName, utm.site_source_name);
+  set(GHL_CUSTOM_FIELDS.landingUrl, utm.landing_url);
+  set(GHL_CUSTOM_FIELDS.gclid, utm.gclid);
+  set(GHL_CUSTOM_FIELDS.fbclid, utm.fbclid);
+
   return fields;
 }
 
 function buildAttributionSource(data: SurveyData): Record<string, string> {
   const utm = data.utmParams;
   const attribution: Record<string, string> = {
-    url: 'https://cryptotaxmadeeasy.com',
+    url: utm.landing_url || 'https://cryptotaxmadeeasy.com',
   };
 
   if (utm.utm_source) attribution.utmSource = utm.utm_source;
   if (utm.utm_medium) attribution.utmMedium = utm.utm_medium;
   if (utm.utm_campaign) attribution.campaign = utm.utm_campaign;
   if (utm.utm_content) attribution.utmContent = utm.utm_content;
+  if (utm.utm_term) attribution.utmKeyword = utm.utm_term;
+  if (utm.placement) attribution.placement = utm.placement;
+  if (utm.site_source_name) attribution.siteSourceName = utm.site_source_name;
   if (utm.gclid) attribution.gclid = utm.gclid;
   if (utm.fbclid) attribution.fbclid = utm.fbclid;
 

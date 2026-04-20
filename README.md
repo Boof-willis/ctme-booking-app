@@ -46,8 +46,13 @@ Before the form works, create these custom fields in your GHL sub-account under 
 | UTM Campaign | `utm_campaign` | Single Line Text |
 | UTM Content | `utm_content` | Single Line Text |
 | UTM Term | `utm_term` | Single Line Text |
+| Placement | `placement` | Single Line Text |
+| Site Source Name | `site_source_name` | Single Line Text |
+| Landing URL | `landing_url` | Single Line Text (or URL) |
 | GCLID | `gclid` | Single Line Text |
 | FBCLID | `fbclid` | Single Line Text |
+
+> Ad URL template for Meta: `?utm_source=meta&utm_medium=paid&utm_campaign={{campaign.name}}&utm_content={{ad.name}}&utm_term={{adset.name}}&placement={{placement}}&site_source_name={{site_source_name}}` — the app captures the full landing URL + all tracking params on first visit and persists them across the multi-step flow.
 
 ## GHL API Endpoints Used
 

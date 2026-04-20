@@ -21,9 +21,12 @@ export interface UTMParams {
   utm_campaign?: string;
   utm_content?: string;
   utm_term?: string;
+  placement?: string;
+  site_source_name?: string;
   gclid?: string;
   fbclid?: string;
   ockno_id?: string;
+  landing_url?: string;
 }
 
 export interface SurveyData {
