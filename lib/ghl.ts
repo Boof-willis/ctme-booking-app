@@ -1,5 +1,5 @@
 import { GHL_CUSTOM_FIELDS } from './constants';
-import { SurveyData, GHLAppointmentResponse } from '@/types/survey';
+import { SurveyData, GHLAppointmentResponse, UTMParams } from '@/types/survey';
 
 const GHL_BASE = 'https://services.leadconnectorhq.com';
 
@@ -140,21 +140,39 @@ export async function createOrUpdateContact(data: SurveyData): Promise<Record<st
 
 export async function updateContact(
   contactId: string,
-  updates: { lastName?: string; phone?: string }
+  updates: { lastName?: string; phone?: string; utmParams?: UTMParams }
 ): Promise<void> {
+  const { lastName, phone, utmParams } = updates;
+
+  const body: Record<string, unknown> = {};
+  if (lastName) body.lastName = lastName;
+  if (phone) body.phone = phone;
+
+  if (utmParams && Object.keys(utmParams).length > 0) {
+    const surveyLike: SurveyData = { taxYears: [], blockchains: [], utmParams };
+    const customFields = buildCustomFields(surveyLike);
+    if (customFields.length > 0) body.customFields = customFields;
+
+    const attributionSource = buildAttributionSource(surveyLike);
+    if (Object.keys(attributionSource).length > 1) {
+      body.attributionSource = attributionSource;
+      body.lastAttributionSource = attributionSource;
+    }
+  }
+
   const res = await fetch(`${GHL_BASE}/contacts/${contactId}`, {
     method: 'PUT',
     headers: getHeaders(),
-    body: JSON.stringify(updates),
+    body: JSON.stringify(body),
   });
 
-  if (res.status === 400 && updates.phone) {
+  if (res.status === 400 && phone) {
     const text = await res.text();
     try {
       const err = JSON.parse(text);
       if (/duplicate/i.test(err?.message || '') && err?.meta?.matchingField === 'phone') {
         console.log('Phone duplicate conflict, retrying update without phone');
-        const { phone: _, ...rest } = updates;
+        const { phone: _, ...rest } = body;
         if (Object.keys(rest).length > 0) {
           const retry = await fetch(`${GHL_BASE}/contacts/${contactId}`, {
             method: 'PUT',

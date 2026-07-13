@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { ConsultationLink } from '@/components/ui/ConsultationLink';
 
 export function NavbarClient() {
   const [scrolled, setScrolled] = useState(false);
@@ -40,12 +41,12 @@ export function NavbarClient() {
           <a href="#faq" className="hover:text-white transition-colors">FAQ</a>
         </div>
         
-        <a
-          href="https://book.ctme.io/consultation?utm_content=navbar"
+        <ConsultationLink
+          section="navbar"
           className="rounded-none bg-[#beb086] px-5 py-2.5 text-sm font-medium text-black hover:bg-[#a89b74] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#beb086] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0A0F]"
         >
           Book Free Consultation
-        </a>
+        </ConsultationLink>
       </div>
     </header>
   );

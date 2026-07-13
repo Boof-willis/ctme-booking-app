@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { contactId, startTime, endTime, timezone, firstName } = body;
+    const { contactId, startTime, endTime, timezone, firstName, utmParams } = body;
 
     if (!contactId || typeof contactId !== 'string') {
       return NextResponse.json({ error: 'Contact ID is required' }, { status: 400 });
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         firstName: firstName ? sanitize(firstName) : '',
         taxYears: [],
         blockchains: [],
-        utmParams: {},
+        utmParams: utmParams && typeof utmParams === 'object' ? utmParams : {},
       }
     );
 

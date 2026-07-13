@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { ConsultationLink } from '@/components/ui/ConsultationLink';
 
 export function Footer() {
   return (
@@ -36,12 +37,12 @@ export function Footer() {
               <li><a href="https://cryptotaxmadeeasy.com/terms-of-service/" className="hover:text-white transition-colors">Terms of Service</a></li>
             </ul>
             <div className="mt-6">
-              <a
-                href="https://book.ctme.io/consultation?utm_content=footer"
+              <ConsultationLink
+                section="footer"
                 className="inline-flex items-center justify-center gap-2 rounded-none border border-zinc-700 hover:border-[#beb086] hover:text-[#beb086] bg-transparent px-5 py-2.5 text-sm font-medium text-white transition-colors"
               >
                 Book Consultation <span>→</span>
-              </a>
+              </ConsultationLink>
             </div>
           </div>
         </div>

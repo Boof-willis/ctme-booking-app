@@ -57,9 +57,10 @@ function BookingFlowInner() {
         trimmedPhone !== (searchParams.get('phone') || '');
 
       if (hasEdits) {
-        const updates: Record<string, string> = { contactId };
+        const updates: Record<string, unknown> = { contactId };
         if (trimmedLastName) updates.lastName = trimmedLastName;
         if (trimmedPhone) updates.phone = trimmedPhone;
+        if (Object.keys(utmParams).length > 0) updates.utmParams = utmParams;
 
         const updateRes = await fetch('/api/ghl/contact', {
           method: 'PUT',
@@ -81,6 +82,7 @@ function BookingFlowInner() {
           endTime: selectedSlot.endTime,
           timezone,
           firstName: trimmedFirstName,
+          utmParams,
         }),
       });
 
@@ -93,7 +95,7 @@ function BookingFlowInner() {
     } finally {
       setIsBooking(false);
     }
-  }, [contactId, selectedSlot, timezone, firstName, lastName, phone, searchParams]);
+  }, [contactId, selectedSlot, timezone, firstName, lastName, phone, searchParams, utmParams]);
 
   if (!contactId) {
     return (

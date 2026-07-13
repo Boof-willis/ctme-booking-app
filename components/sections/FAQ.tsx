@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { FAQAccordion } from './FAQAccordion';
+import { ConsultationLink } from '@/components/ui/ConsultationLink';
 
 const FAQS = [
   {
@@ -74,12 +75,12 @@ export function FAQ() {
         </div>
 
         <div className="text-center">
-          <a
-            href="https://book.ctme.io/consultation?utm_content=faq"
+          <ConsultationLink
+            section="faq"
             className="inline-flex items-center justify-center gap-2 rounded-none bg-[#beb086] px-8 py-4 text-base font-bold text-black hover:bg-[#a89b74] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(190,176,134,0.15)]"
           >
             Still Have Questions? Book a Free Consultation <span>→</span>
-          </a>
+          </ConsultationLink>
         </div>
       </div>
     </section>

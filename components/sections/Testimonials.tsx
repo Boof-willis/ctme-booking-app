@@ -1,3 +1,5 @@
+import { ConsultationLink } from '@/components/ui/ConsultationLink';
+
 export function Testimonials() {
   const StarRow = () => (
     <div className="flex items-center gap-1 text-[#beb086] mb-4">
@@ -85,12 +87,12 @@ export function Testimonials() {
         </div>
 
         <div className="text-center">
-          <a
-            href="https://book.ctme.io/consultation?utm_content=testimonials"
+          <ConsultationLink
+            section="testimonials"
             className="inline-flex items-center justify-center gap-2 rounded-none bg-[#beb086] px-8 py-4 text-base font-bold text-black hover:bg-[#a89b74] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(190,176,134,0.15)]"
           >
             Book My Free Consultation <span>→</span>
-          </a>
+          </ConsultationLink>
         </div>
       </div>
     </section>

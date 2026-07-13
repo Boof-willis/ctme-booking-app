@@ -1,3 +1,5 @@
+import { ConsultationLink } from '@/components/ui/ConsultationLink';
+
 export function Hero() {
   return (
     <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-32 sm:pt-40 pb-16 overflow-hidden">
@@ -46,12 +48,12 @@ export function Hero() {
           </div>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-            <a
-              href="https://book.ctme.io/consultation?utm_content=hero"
+            <ConsultationLink
+              section="hero"
               className="w-full sm:w-auto rounded-none bg-[#beb086] px-8 py-4 text-base font-bold text-black hover:bg-[#a89b74] transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_20px_rgba(190,176,134,0.15)] flex items-center justify-center gap-2"
             >
               Book Your Free Consultation <span>→</span>
-            </a>
+            </ConsultationLink>
             <a
               href="#how-it-works"
               className="bg-black border border-zinc-600 text-white hover:border-[#beb086] transition-colors rounded-none px-8 py-4 flex items-center justify-center gap-3 relative overflow-hidden group w-full sm:w-auto text-base font-medium"

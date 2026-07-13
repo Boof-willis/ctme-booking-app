@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrUpdateContact, updateContact } from '@/lib/ghl';
 import { isValidEmail, sanitize, isHoneypotFilled } from '@/lib/validation';
+import { UTMParams } from '@/types/survey';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -162,15 +163,16 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { contactId, lastName, phone } = body;
+    const { contactId, lastName, phone, utmParams } = body;
 
     if (!contactId || typeof contactId !== 'string') {
       return NextResponse.json({ error: 'Contact ID is required' }, { status: 400 });
     }
 
-    const updates: { lastName?: string; phone?: string } = {};
+    const updates: { lastName?: string; phone?: string; utmParams?: UTMParams } = {};
     if (lastName && typeof lastName === 'string') updates.lastName = sanitize(lastName);
     if (phone && typeof phone === 'string') updates.phone = sanitize(phone);
+    if (utmParams && typeof utmParams === 'object') updates.utmParams = utmParams;
 
     await updateContact(contactId, updates);
 
