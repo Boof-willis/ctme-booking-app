@@ -61,7 +61,9 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { firstName, lastName, email, phone, surveyData } = body;
+    const { firstName, lastName, email, phone, surveyData, tag } = body;
+
+    const tags = tag && typeof tag === 'string' ? [sanitize(tag)] : undefined;
 
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length === 0) {
       return NextResponse.json({ error: 'First name is required' }, { status: 400 });
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
       otherCountryName: surveyData?.otherCountryName,
       otherCountryCode: surveyData?.otherCountryCode,
       utmParams: surveyData?.utmParams || {},
-    });
+    }, tags);
 
     const contactId =
       (result as any)?.contact?.id ??
@@ -136,6 +138,7 @@ export async function POST(req: NextRequest) {
             agreedToTos: surveyData?.agreedToTos ?? false,
             utmParams: surveyData?.utmParams,
             ockno_id: surveyData?.utmParams?.ockno_id,
+            tags,
             complexityScore,
             complexityTier,
             taxYearsCount: taxYears.length,

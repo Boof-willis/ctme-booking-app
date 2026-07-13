@@ -79,7 +79,10 @@ function buildAttributionSource(data: SurveyData): Record<string, string> {
   return attribution;
 }
 
-export async function createOrUpdateContact(data: SurveyData): Promise<Record<string, unknown>> {
+export async function createOrUpdateContact(
+  data: SurveyData,
+  tags?: string[]
+): Promise<Record<string, unknown>> {
   const customFields = buildCustomFields(data);
 
   const body: Record<string, unknown> = {
@@ -91,6 +94,10 @@ export async function createOrUpdateContact(data: SurveyData): Promise<Record<st
 
   if (customFields.length > 0) {
     body.customFields = customFields;
+  }
+
+  if (tags && tags.length > 0) {
+    body.tags = tags;
   }
 
   const attributionSource = buildAttributionSource(data);

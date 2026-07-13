@@ -97,24 +97,14 @@ export function parseUTMParams(): UTMParams {
  * captured UTM params (from the current URL or sessionStorage) through to the
  * intake form. `utm_content` is always set to the section name so funnel
  * tracking still identifies which CTA was clicked.
- *
- * `overrides` forces specific UTM values (e.g. a client-specific `utm_source`)
- * to win over whatever was captured, so a dedicated landing route can attribute
- * every click to that client.
  */
-export function getConsultationURL(section: string, overrides?: Partial<UTMParams>): string {
+export function getConsultationURL(section: string): string {
   const params = new URLSearchParams();
 
   if (typeof window !== 'undefined') {
     const utms = parseUTMParams();
     for (const key of UTM_KEYS) {
       const value = utms[key];
-      if (value) params.set(key, value);
-    }
-  }
-
-  if (overrides) {
-    for (const [key, value] of Object.entries(overrides)) {
       if (value) params.set(key, value);
     }
   }

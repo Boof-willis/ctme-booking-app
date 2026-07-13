@@ -17,7 +17,7 @@ import { isHoneypotFilled } from '@/lib/validation';
 import { trackSurveyStarted, trackEmailCaptured, trackAppointmentBooked } from '@/lib/tracking';
 import { STEPS } from '@/lib/constants';
 
-export default function SurveyFlow() {
+export default function SurveyFlow({ tag }: { tag?: string } = {}) {
   const state = useSurveyState();
   const router = useRouter();
   const [contactSubmitting, setContactSubmitting] = useState(false);
@@ -54,6 +54,7 @@ export default function SurveyFlow() {
             lastName,
             email,
             phone,
+            tag,
             surveyData: {
               country: state.surveyData.country,
               otherCountryName: state.surveyData.otherCountryName,
@@ -80,7 +81,7 @@ export default function SurveyFlow() {
         setContactSubmitting(false);
       }
     },
-    [state]
+    [state, tag]
   );
 
   const handleSlotSelect = useCallback(
