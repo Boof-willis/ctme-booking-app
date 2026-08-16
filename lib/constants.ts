@@ -1,13 +1,41 @@
-import { StepDefinition, Country, TaxYear, Blockchain, TaxSoftware } from '@/types/survey';
+import {
+  StepDefinition,
+  Country,
+  TaxYear,
+  Blockchain,
+  TaxSoftware,
+  GainsBracket,
+  PortfolioBracket,
+  TransactionBracket,
+} from '@/types/survey';
 
 export const STEPS: StepDefinition[] = [
   { id: 'country', label: 'Country', number: 1, hash: '#step-1' },
-  { id: 'tax-years', label: 'Tax Years', number: 2, hash: '#step-2' },
-  { id: 'blockchains', label: 'Blockchains', number: 3, hash: '#step-3' },
-  { id: 'software', label: 'Software', number: 4, hash: '#step-4' },
-  { id: 'contact-info', label: 'Your Info', number: 5, hash: '#step-5' },
-  { id: 'calendar', label: 'Pick a Time', number: 6, hash: '#step-6' },
+  { id: 'gains', label: 'Gains', number: 2, hash: '#step-2' },
+  { id: 'portfolio', label: 'Portfolio', number: 3, hash: '#step-3' },
+  { id: 'transactions', label: 'Transactions', number: 4, hash: '#step-4' },
+  { id: 'tax-years', label: 'Tax Years', number: 5, hash: '#step-5' },
+  { id: 'blockchains', label: 'Blockchains', number: 6, hash: '#step-6' },
+  { id: 'software', label: 'Software', number: 7, hash: '#step-7' },
+  { id: 'contact-info', label: 'Your Info', number: 8, hash: '#step-8' },
+  { id: 'calendar', label: 'Pick a Time', number: 9, hash: '#step-9' },
 ];
+
+/**
+ * Qualifier brackets. Order matters: index >= the QUALIFYING_INDEX for any one
+ * dimension qualifies the lead for a consultation (see lib/qualification.ts).
+ */
+export const GAINS_BRACKETS: GainsBracket[] = ['Under $10k', '$10k – $50k', '$50k – $250k', '$250k+'];
+export const PORTFOLIO_BRACKETS: PortfolioBracket[] = ['Under $25k', '$25k – $100k', '$100k – $500k', '$500k+'];
+export const TRANSACTION_BRACKETS: TransactionBracket[] = ['Under 1,000', '1,000 – 6,000', '6,000 – 20,000', '20,000+'];
+
+/** Thresholds per Matt: gains ≥ $50k, portfolio ≥ $100k, or ≥ 6k transactions. */
+export const QUALIFYING_GAINS_INDEX = 2;
+export const QUALIFYING_PORTFOLIO_INDEX = 2;
+export const QUALIFYING_TRANSACTION_INDEX = 2;
+
+export const MINIMUM_ENGAGEMENT_USD = 1500;
+export const COURSE_URL = 'https://cryptotaxmadeeasy.com/crypto-tax-made-easy-course/';
 
 export const COUNTRIES: Country[] = [
   'Australia',
@@ -69,6 +97,9 @@ export const GHL_CUSTOM_FIELDS = {
   blockchainsUsed: 'blockchains_used',
   hasTaxSoftware: 'do_you_currently_have_crypto_tax_software_set_up',
   taxSoftwareName: 'if_yes_which_crypto_tax_software',
+  estimatedGains: 'estimated_realized_gains',
+  estimatedPortfolio: 'estimated_portfolio_value',
+  estimatedTransactions: 'estimated_transaction_count',
   ocknoId: 'ockno_id',
   agreedToTos: 'agreed_to_tos',
   utmSource: 'utm_source',

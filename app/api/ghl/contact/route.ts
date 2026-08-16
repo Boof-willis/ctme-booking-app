@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createOrUpdateContact, updateContact } from '@/lib/ghl';
 import { isValidEmail, sanitize, isHoneypotFilled } from '@/lib/validation';
 import { UTMParams } from '@/types/survey';
+import { isQualified } from '@/lib/qualification';
+import { GAINS_BRACKETS, PORTFOLIO_BRACKETS, TRANSACTION_BRACKETS } from '@/lib/constants';
+
+/** Only accept bracket strings we actually render; anything else is dropped. */
+function pickBracket<T extends string>(value: unknown, allowed: readonly T[]): T | undefined {
+  return typeof value === 'string' && (allowed as readonly string[]).includes(value) ? (value as T) : undefined;
+}
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -63,7 +70,19 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { firstName, lastName, email, phone, surveyData, tag } = body;
 
-    const tags = tag && typeof tag === 'string' ? [sanitize(tag)] : undefined;
+    const qualifier = {
+      gainsBracket: pickBracket(surveyData?.gainsBracket, GAINS_BRACKETS),
+      portfolioBracket: pickBracket(surveyData?.portfolioBracket, PORTFOLIO_BRACKETS),
+      transactionBracket: pickBracket(surveyData?.transactionBracket, TRANSACTION_BRACKETS),
+    };
+    const qualified = isQualified(qualifier);
+
+    const tagList: string[] = [];
+    if (tag && typeof tag === 'string') tagList.push(sanitize(tag));
+    // Anyone reaching contact capture has passed the gate client-side; tag so
+    // GHL workflows can distinguish gated bookings from legacy/other sources.
+    if (qualified) tagList.push('qualified');
+    const tags = tagList.length > 0 ? tagList : undefined;
 
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length === 0) {
       return NextResponse.json({ error: 'First name is required' }, { status: 400 });
@@ -81,6 +100,7 @@ export async function POST(req: NextRequest) {
       lastName: lastName ? sanitize(lastName) : undefined,
       email: sanitize(email),
       phone: phone ? sanitize(phone) : undefined,
+      ...qualifier,
       taxYears: surveyData?.taxYears || [],
       blockchains: surveyData?.blockchains || [],
       hasTaxSoftware: surveyData?.hasTaxSoftware,
@@ -139,6 +159,10 @@ export async function POST(req: NextRequest) {
             utmParams: surveyData?.utmParams,
             ockno_id: surveyData?.utmParams?.ockno_id,
             tags,
+            gainsBracket: qualifier.gainsBracket,
+            portfolioBracket: qualifier.portfolioBracket,
+            transactionBracket: qualifier.transactionBracket,
+            qualified,
             complexityScore,
             complexityTier,
             taxYearsCount: taxYears.length,

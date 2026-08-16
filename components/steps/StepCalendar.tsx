@@ -11,6 +11,8 @@ interface StepCalendarProps {
   onSlotSelect: (slot: CalendarSlot, timezone: string) => void;
   onBook: () => Promise<void>;
   onBack: () => void;
+  acknowledgedMinimum: boolean;
+  onAcknowledgeMinimum: (checked: boolean) => void;
 }
 
 export default function StepCalendar({
@@ -18,6 +20,8 @@ export default function StepCalendar({
   onSlotSelect,
   onBook,
   onBack,
+  acknowledgedMinimum,
+  onAcknowledgeMinimum,
 }: StepCalendarProps) {
   const calendarTimezone = 'America/Denver';
   const [isBooking, setIsBooking] = useState(false);
@@ -61,6 +65,8 @@ export default function StepCalendar({
         selectedSlot={selectedSlot}
         isBooking={isBooking}
         bookingError={bookingError}
+        acknowledgedMinimum={acknowledgedMinimum}
+        onAcknowledgeMinimum={onAcknowledgeMinimum}
       />
     </motion.div>
   );

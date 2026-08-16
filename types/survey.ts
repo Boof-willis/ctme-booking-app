@@ -15,6 +15,10 @@ export type Blockchain =
 
 export type TaxSoftware = 'Koinly' | 'Awaken' | 'Summ' | 'Netrunner' | 'Other';
 
+export type GainsBracket = 'Under $10k' | '$10k – $50k' | '$50k – $250k' | '$250k+';
+export type PortfolioBracket = 'Under $25k' | '$25k – $100k' | '$100k – $500k' | '$500k+';
+export type TransactionBracket = 'Under 1,000' | '1,000 – 6,000' | '6,000 – 20,000' | '20,000+';
+
 export interface UTMParams {
   utm_source?: string;
   utm_medium?: string;
@@ -33,10 +37,14 @@ export interface SurveyData {
   country?: Country;
   otherCountryName?: string;
   otherCountryCode?: string;
+  gainsBracket?: GainsBracket;
+  portfolioBracket?: PortfolioBracket;
+  transactionBracket?: TransactionBracket;
   taxYears: TaxYear[];
   blockchains: Blockchain[];
   hasTaxSoftware?: boolean;
   taxSoftwareName?: TaxSoftware;
+  acknowledgedMinimum?: boolean;
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -85,6 +93,9 @@ export interface GHLAppointmentResponse {
 
 export type StepId =
   | 'country'
+  | 'gains'
+  | 'portfolio'
+  | 'transactions'
   | 'tax-years'
   | 'blockchains'
   | 'software'

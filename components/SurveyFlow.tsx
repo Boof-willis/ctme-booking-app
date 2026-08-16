@@ -7,15 +7,24 @@ import { useSurveyState } from '@/hooks/useSurveyState';
 import ProgressBar from '@/components/ProgressBar';
 import DisqualifiedScreen from '@/components/DisqualifiedScreen';
 import StepCountry from '@/components/steps/StepCountry';
+import StepBracket from '@/components/steps/StepBracket';
 import StepTaxYears from '@/components/steps/StepTaxYears';
 import StepBlockchains from '@/components/steps/StepBlockchains';
 import StepSoftware from '@/components/steps/StepSoftware';
 import StepContactInfo from '@/components/steps/StepContactInfo';
 import StepCalendar from '@/components/steps/StepCalendar';
-import { Country, CalendarSlot, TaxSoftware } from '@/types/survey';
+import {
+  Country,
+  CalendarSlot,
+  TaxSoftware,
+  GainsBracket,
+  PortfolioBracket,
+  TransactionBracket,
+} from '@/types/survey';
 import { isHoneypotFilled } from '@/lib/validation';
-import { trackSurveyStarted, trackEmailCaptured, trackAppointmentBooked } from '@/lib/tracking';
-import { STEPS } from '@/lib/constants';
+import { trackSurveyStarted, trackEmailCaptured, trackAppointmentBooked, trackQualified } from '@/lib/tracking';
+import { STEPS, GAINS_BRACKETS, PORTFOLIO_BRACKETS, TRANSACTION_BRACKETS } from '@/lib/constants';
+import { isQualified } from '@/lib/qualification';
 
 export default function SurveyFlow({ tag }: { tag?: string } = {}) {
   const state = useSurveyState();
@@ -29,6 +38,37 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
       state.setCountry(country, otherCountryName, otherCountryCode);
       trackSurveyStarted();
       state.goNext();
+    },
+    [state]
+  );
+
+  const handleGainsSelect = useCallback(
+    (gainsBracket: GainsBracket) => {
+      state.setQualifier({ gainsBracket });
+      state.goNext();
+    },
+    [state]
+  );
+
+  const handlePortfolioSelect = useCallback(
+    (portfolioBracket: PortfolioBracket) => {
+      state.setQualifier({ portfolioBracket });
+      state.goNext();
+    },
+    [state]
+  );
+
+  // Last of the three qualifier questions: gate here. Evaluate against the
+  // just-selected value since the state update hasn't flushed yet.
+  const handleTransactionsSelect = useCallback(
+    (transactionBracket: TransactionBracket) => {
+      state.setQualifier({ transactionBracket });
+      if (isQualified({ ...state.surveyData, transactionBracket })) {
+        trackQualified();
+        state.goNext();
+      } else {
+        state.disqualify();
+      }
     },
     [state]
   );
@@ -59,6 +99,9 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
               country: state.surveyData.country,
               otherCountryName: state.surveyData.otherCountryName,
               otherCountryCode: state.surveyData.otherCountryCode,
+              gainsBracket: state.surveyData.gainsBracket,
+              portfolioBracket: state.surveyData.portfolioBracket,
+              transactionBracket: state.surveyData.transactionBracket,
               taxYears: state.surveyData.taxYears,
               blockchains: state.surveyData.blockchains,
               hasTaxSoftware: state.surveyData.hasTaxSoftware,
@@ -146,7 +189,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
   }
 
   if (state.isDisqualified) {
-    return <DisqualifiedScreen />;
+    return <DisqualifiedScreen reason="size" utmParams={state.surveyData.utmParams} />;
   }
 
   const renderStep = () => {
@@ -154,6 +197,42 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
       case 0:
         return <StepCountry key="country" onSelect={handleCountrySelect} />;
       case 1:
+        return (
+          <StepBracket
+            key="gains"
+            title="Roughly, what are your total realized crypto gains?"
+            hint="Across the years you need help with, approx. USD"
+            options={GAINS_BRACKETS}
+            value={state.surveyData.gainsBracket}
+            onSelect={handleGainsSelect}
+            onBack={state.goBack}
+          />
+        );
+      case 2:
+        return (
+          <StepBracket
+            key="portfolio"
+            title="What's your current portfolio worth?"
+            hint="All wallets and exchanges combined, approx. USD"
+            options={PORTFOLIO_BRACKETS}
+            value={state.surveyData.portfolioBracket}
+            onSelect={handlePortfolioSelect}
+            onBack={state.goBack}
+          />
+        );
+      case 3:
+        return (
+          <StepBracket
+            key="transactions"
+            title="How many transactions, all time?"
+            hint="Every wallet and exchange, rough estimate is fine"
+            options={TRANSACTION_BRACKETS}
+            value={state.surveyData.transactionBracket}
+            onSelect={handleTransactionsSelect}
+            onBack={state.goBack}
+          />
+        );
+      case 4:
         return (
           <StepTaxYears
             key="tax-years"
@@ -163,7 +242,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
             onBack={state.goBack}
           />
         );
-      case 2:
+      case 5:
         return (
           <StepBlockchains
             key="blockchains"
@@ -173,7 +252,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
             onBack={state.goBack}
           />
         );
-      case 3:
+      case 6:
         return (
           <StepSoftware
             key="software"
@@ -184,7 +263,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
             onBack={state.goBack}
           />
         );
-      case 4:
+      case 7:
         return (
           <StepContactInfo
             key="contact-info"
@@ -200,7 +279,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
             error={contactError}
           />
         );
-      case 5:
+      case 8:
         return (
           <StepCalendar
             key="calendar"
@@ -208,6 +287,8 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
             onSlotSelect={handleSlotSelect}
             onBook={handleBook}
             onBack={state.goBack}
+            acknowledgedMinimum={state.surveyData.acknowledgedMinimum === true}
+            onAcknowledgeMinimum={state.setAcknowledgedMinimum}
           />
         );
       default:

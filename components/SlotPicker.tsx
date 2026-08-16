@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CalendarSlot, CalendarDay } from '@/types/survey';
-import { FALLBACK_EMAIL } from '@/lib/constants';
+import { FALLBACK_EMAIL, MINIMUM_ENGAGEMENT_USD } from '@/lib/constants';
 
 interface SlotPickerProps {
   calendarTimezone: string;
@@ -12,6 +12,9 @@ interface SlotPickerProps {
   selectedSlot: CalendarSlot | null;
   isBooking: boolean;
   bookingError: string | null;
+  /** When provided, renders the minimum-engagement acknowledgment and gates Confirm on it. */
+  acknowledgedMinimum?: boolean;
+  onAcknowledgeMinimum?: (checked: boolean) => void;
 }
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -85,7 +88,11 @@ export default function SlotPicker({
   selectedSlot,
   isBooking,
   bookingError,
+  acknowledgedMinimum,
+  onAcknowledgeMinimum,
 }: SlotPickerProps) {
+  const requiresAcknowledgment = typeof onAcknowledgeMinimum === 'function';
+  const confirmBlocked = requiresAcknowledgment && !acknowledgedMinimum;
   const [days, setDays] = useState<CalendarDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -450,6 +457,22 @@ export default function SlotPicker({
               {getTimezoneAbbr(displayTimezone)}
             </p>
 
+            {requiresAcknowledgment && (
+              <label className="mt-4 flex items-start gap-3 cursor-pointer select-none border-t border-zinc-800 pt-4">
+                <input
+                  type="checkbox"
+                  checked={Boolean(acknowledgedMinimum)}
+                  onChange={(e) => onAcknowledgeMinimum?.(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded-none border-zinc-800 bg-black accent-[#beb086]"
+                />
+                <span className="text-sm font-mono leading-relaxed text-zinc-400">
+                  I understand Crypto Tax Made Easy&apos;s done-for-you service has a{' '}
+                  <span className="text-white font-bold">${MINIMUM_ENGAGEMENT_USD.toLocaleString()} minimum</span>{' '}
+                  engagement, and I&apos;m booking this call to discuss working together.
+                </span>
+              </label>
+            )}
+
             {bookingError && (
               <p className="text-red-400 text-sm mt-2">{bookingError}</p>
             )}
@@ -457,7 +480,8 @@ export default function SlotPicker({
               <motion.button
                 type="button"
                 onClick={onConfirm}
-                disabled={isBooking}
+                disabled={isBooking || confirmBlocked}
+                title={confirmBlocked ? 'Please confirm the minimum engagement above' : undefined}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
                 className="

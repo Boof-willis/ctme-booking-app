@@ -1,7 +1,17 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { SurveyData, Country, TaxYear, Blockchain, TaxSoftware, CalendarSlot } from '@/types/survey';
+import {
+  SurveyData,
+  Country,
+  TaxYear,
+  Blockchain,
+  TaxSoftware,
+  CalendarSlot,
+  GainsBracket,
+  PortfolioBracket,
+  TransactionBracket,
+} from '@/types/survey';
 import { SESSION_KEYS, STEPS } from '@/lib/constants';
 import { parseUTMParams } from '@/lib/utm';
 
@@ -9,10 +19,14 @@ const DEFAULT_DATA: SurveyData = {
   country: undefined,
   otherCountryName: undefined,
   otherCountryCode: undefined,
+  gainsBracket: undefined,
+  portfolioBracket: undefined,
+  transactionBracket: undefined,
   taxYears: [],
   blockchains: [],
   hasTaxSoftware: undefined,
   taxSoftwareName: undefined,
+  acknowledgedMinimum: undefined,
   firstName: undefined,
   lastName: undefined,
   email: undefined,
@@ -121,6 +135,8 @@ export function useSurveyState() {
         setDirection(-1);
         setCurrentStep(stepIndex);
         stepRef.current = stepIndex;
+        // Browser back from the disqualified screen returns to the flow
+        setIsDisqualified(false);
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -152,6 +168,21 @@ export function useSurveyState() {
       otherCountryName: country === 'Other' ? otherCountryName : undefined,
       otherCountryCode: country === 'Other' ? otherCountryCode : undefined,
     }));
+  }, []);
+
+  const setQualifier = useCallback(
+    (answers: { gainsBracket?: GainsBracket; portfolioBracket?: PortfolioBracket; transactionBracket?: TransactionBracket }) => {
+      setSurveyData((prev) => ({ ...prev, ...answers }));
+    },
+    []
+  );
+
+  const setAcknowledgedMinimum = useCallback((acknowledgedMinimum: boolean) => {
+    setSurveyData((prev) => ({ ...prev, acknowledgedMinimum }));
+  }, []);
+
+  const disqualify = useCallback(() => {
+    setIsDisqualified(true);
   }, []);
 
   const setTaxYears = useCallback((taxYears: TaxYear[]) => {
@@ -202,6 +233,9 @@ export function useSurveyState() {
     goNext,
     goBack,
     setCountry,
+    setQualifier,
+    setAcknowledgedMinimum,
+    disqualify,
     setTaxYears,
     setBlockchains,
     setTaxSoftware,
