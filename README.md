@@ -28,7 +28,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `GHL_LOCATION_ID` | Yes | GHL Location/Sub-Account ID |
 | `NEXT_PUBLIC_META_PIXEL_ID` | No | Meta/Facebook Pixel ID for conversion tracking |
 | `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | No | Google Analytics 4 Measurement ID (G-XXXXXX) |
-| `NEXT_PUBLIC_GOOGLE_ADS_ID` | No | Google Ads Conversion ID (AW-XXXXXX) |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID` | No | Google Ads remarketing tag ID (AW-XXXXXX). Conversion *reporting* is not done from this app — see below. |
 
 ## GHL Custom Fields Setup
 
@@ -77,13 +77,22 @@ All API calls are proxied through `/api/ghl/*` server-side routes so the API key
 
 ## Conversion Tracking
 
-Events fired at key milestones:
+Client-side pixel/GA4 events fired at key milestones (analytics only — see below for
+Google Ads conversion reporting). Page views are gtag's own default (automatic
+`page_view` on every full page load) — nothing custom needed for that.
 
-| Event | When | Meta Pixel | Google |
+| Event | When | Meta Pixel | GA4 |
 |---|---|---|---|
 | Survey Started | Valid country selected (Step 1) | — | `survey_started` |
 | Lead Captured | Contact created (Step 5) | `Lead` | `generate_lead` |
-| Appointment Booked | Booking confirmed (Step 6) | `Schedule` | `conversion` |
+| Appointment Booked | Booking confirmed (Step 6, or via `/book` `/schedule` rebooking) | `Schedule` | `appointment_booked` |
+
+**Google Ads conversions are not fired from the browser.** They're reported server-side
+by Ockno: contact creation (Step 5) writes `gclid` and `ockno_id` onto the GHL contact
+(see `lib/ghl.ts`), booking confirmation (Step 6) moves the GHL pipeline opportunity to
+"Call Booked", and Ockno watches that pipeline stage change to push the conversion into
+Google Ads. Nothing in this app needs a Google Ads conversion label — that lives in
+Ockno's own configuration.
 
 ## Deploy to Vercel
 
