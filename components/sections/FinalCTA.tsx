@@ -1,6 +1,10 @@
 import { ConsultationLink } from '@/components/ui/ConsultationLink';
+import { isExtensionSeasonActive } from '@/lib/constants';
 
 export function FinalCTA() {
+  // Gated on the same window as SeasonalBanner so the two appear and vanish together.
+  const extensionSeason = isExtensionSeasonActive();
+
   return (
     <section className="bg-[#0A0A0F] py-24 sm:py-32 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(190,176,134,0.06)_0%,transparent_60%)] pointer-events-none" />
@@ -36,10 +40,12 @@ export function FinalCTA() {
             <span className="text-[#beb086] tracking-widest ml-1">★★★★★</span>
           </div>
         </div>
-        
-        <div className="font-mono text-xs text-amber-500 uppercase tracking-widest inline-block border border-amber-500/20 bg-amber-500/5 px-4 py-2">
-          Tax deadlines don't wait · Lock in your spot before our calendar fills up
-        </div>
+
+        {extensionSeason && (
+          <div className="font-mono text-xs text-amber-500 uppercase tracking-widest inline-block border border-amber-500/20 bg-amber-500/5 px-4 py-2">
+            There's no extension to the extension · October 15 is the last filing date for 2025 returns
+          </div>
+        )}
       </div>
     </section>
   );

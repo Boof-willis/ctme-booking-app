@@ -48,16 +48,16 @@ export function HowItWorks() {
           <div className="md:hidden absolute top-[44px] bottom-[44px] left-[44px] w-[1px] bg-zinc-800" />
 
           {steps.map((step, i) => (
-            <div key={i} className="relative z-10 flex flex-col md:items-center md:text-center">
-              <div className="flex md:flex-col items-center md:items-center gap-6 md:gap-0 w-full">
+            <div key={i} className="relative z-10 h-full flex flex-col md:items-center md:text-center">
+              <div className="h-full flex md:flex-col items-center md:items-center gap-6 md:gap-0 w-full">
                 <div className="bg-[#0A0A0F] p-4 flex flex-col items-center shrink-0">
                   <div className="font-mono text-4xl font-bold text-[#beb086] mb-2">{step.num}</div>
                   <div className="inline-block bg-[#beb086]/10 text-[#beb086] font-mono text-xs px-3 py-1 rounded-none border border-[#beb086]/20">
                     {step.time}
                   </div>
                 </div>
-                
-                <div className="bg-zinc-950 border border-zinc-800 p-6 shadow-xl shadow-black/30 w-full mt-4 flex-1">
+
+                <div className="bg-zinc-950 border border-zinc-800 p-6 shadow-xl shadow-black/30 w-full mt-4 flex-1 flex flex-col">
                   <h3 className="text-lg font-bold text-white mb-3">{step.title}</h3>
                   <p className="text-zinc-400 text-sm leading-relaxed">{step.desc}</p>
                 </div>

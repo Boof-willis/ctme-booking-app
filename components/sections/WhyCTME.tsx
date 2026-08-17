@@ -3,8 +3,19 @@ import { ConsultationLink } from '@/components/ui/ConsultationLink';
 export function WhyCTME() {
   const coverage = [
     "DeFi", "NFTs", "Solana", "Bitcoin Ordinals", "BRC-20", "Hyperliquid",
-    "On-Chain Perps", "Multi-Chain", "Bridges", "Airdrops", "Mining",
+    "On-Chain Perps", "Pendle", "Multi-Chain", "Bridges", "Airdrops", "Mining",
     "Staking", "Yield Farming", "Liquidity Pools"
+  ];
+
+  /**
+   * Third-party directory rankings. Stronger than the press bar because each one is
+   * a competitor or adjacent tool choosing to recommend CTME.
+   */
+  const rankings = [
+    { rank: "#1 Recommended", source: "Awaken Tax" },
+    { rank: "Top Featured", source: "Koinly Accountant Directory" },
+    { rank: "#1 in Australia", source: "CoinLedger" },
+    { rank: "Listed Specialist", source: "CoinTracking.info" },
   ];
 
   return (
@@ -69,7 +80,7 @@ export function WhyCTME() {
               </li>
               <li>
                 <div className="font-mono text-xs uppercase tracking-wider mb-1">Accuracy</div>
-                <div>90% overreport gains</div>
+                <div>Guesses in the government's favor</div>
               </li>
               <li>
                 <div className="font-mono text-xs uppercase tracking-wider mb-1">Your Time Investment</div>
@@ -130,6 +141,25 @@ export function WhyCTME() {
           </div>
         </div>
 
+        {/* Directory rankings: the software everyone compares us to sends people here. */}
+        <div className="mb-16">
+          <h3 className="text-center font-mono text-xs uppercase tracking-widest text-[#beb086] mb-8">
+            &gt; Ranked By the Platforms Our Clients Already Use
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-800 border border-zinc-800 max-w-5xl mx-auto">
+            {rankings.map((item) => (
+              <div key={item.source} className="bg-[#0A0A0F] p-6 text-center">
+                <div className="font-mono text-sm text-[#beb086] mb-2 tracking-tight">
+                  {item.rank}
+                </div>
+                <div className="font-mono text-[10px] sm:text-xs uppercase tracking-wider text-zinc-500 leading-relaxed">
+                  {item.source}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="text-center pb-16 border-b border-zinc-900 mb-16">
           <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-10 opacity-40 hover:opacity-100 transition-opacity duration-300 font-mono text-sm tracking-wider uppercase text-white mb-6">
             <span>Binance</span>
@@ -137,6 +167,8 @@ export function WhyCTME() {
             <span>CoinTelegraph</span>
             <span className="hidden sm:inline">·</span>
             <span>CryptoNews</span>
+            <span className="hidden sm:inline">·</span>
+            <span>AMB Crypto</span>
             <span className="hidden sm:inline">·</span>
             <span>NGMI Podcast</span>
           </div>

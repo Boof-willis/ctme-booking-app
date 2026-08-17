@@ -4,18 +4,36 @@ import { useState } from 'react';
 import { FAQAccordion } from './FAQAccordion';
 import { ConsultationLink } from '@/components/ui/ConsultationLink';
 
-const FAQS = [
+type FaqItem = { id?: string; question: string; answer: string };
+
+const FAQS: FaqItem[] = [
   {
+    id: "local",
+    question: "Are you local to me?",
+    answer: "We work remotely with clients across the US (and Australia, Canada, the UK and New Zealand), so no, and that is usually the point. Crypto-fluent accountants are scarce in most cities, which is why people search for one nearby and come up empty. Working remotely is what lets us staff actual specialists instead of whoever is closest to you. Everything happens over a call and inside secure practice management software, so there is nothing you would have gained by driving to an office."
+  },
+  {
+    id: "cost",
     question: "How much does this cost?",
     answer: "Our pricing is flat-rate based on your transaction volume. No hourly billing, no surprise invoices. We review your situation, give you one clear price upfront, and that's what you pay. Most of our clients save more in tax than our fee. Book a free consultation and we'll tell you the exact cost before you commit to anything."
   },
   {
+    id: "minimum",
+    question: "What does it cost to get started?",
+    answer: "Our done-for-you service has a $1,500 minimum engagement, and we'd rather you know that now than at the end of a call. That $1,500 buys four hours of high-level review, and it is not a deposit you lose. If you decide afterwards that you want the full line-by-line reconciliation, the $1,500 rolls into the comprehensive cost. If your situation is smaller and simpler than that, we'll tell you on the call and point you at our course instead."
+  },
+  {
+    id: "already-filed",
+    question: "I already filed. Is it too late to check?",
+    answer: "No, and this is more common than people expect. Of the 802 client reports we reviewed, 56.4% had overstated gains and 43.6% had underreported them, so a return that has already gone in is worth a second look in either direction. You can generally amend a prior year with Form 1040-X within three years of filing or two years of paying, whichever is later. Even outside that window, the reconciliation still matters, because cost basis carries forward and one wrong call in 2021 makes every year after it wrong too."
+  },
+  {
     question: "Do you file my tax return?",
-    answer: "No. We deliver an audit-ready crypto tax report that your CPA or tax preparer uses to file your return. If you self-file using TurboTax or similar software, you can import our report directly. We also support your CPA at no extra charge if they have questions about the crypto-specific details."
+    answer: "Filing isn't the core of what we do. We specialize in reconciliation: hand-checking every transaction and turning it into an audit-ready report. That report drops straight into TurboTax or your own CPA's workflow, and we support your CPA at no extra charge if they have questions about the crypto-specific details. If you'd rather not deal with filing yourself, we can also connect eligible US clients with a licensed CPA partner, Michael Bergloff, for tax return filing, IRS notice response and audit defense where scoped."
   },
   {
     question: "What if I don't have a CPA or accountant?",
-    answer: "That's fine. Our report is designed to work with any filing method. If you use TurboTax, H&R Block, or any other self-filing tool, you can import the report directly. We'll walk you through the process."
+    answer: "That's fine. Our report is designed to work with any filing method. If you use TurboTax, H&R Block, or any other self-filing tool, you can import the report directly, and we'll walk you through the process. If you'd rather have someone file it for you, we can introduce eligible clients to a licensed CPA partner instead."
   },
   {
     question: "What if I have multiple years of unfiled crypto taxes?",
@@ -43,8 +61,15 @@ const FAQS = [
   }
 ];
 
-export function FAQ() {
+export function FAQ({ variant = 'master' }: { variant?: 'master' | 'near-me' }) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+
+  // The near-me group's searchers expect a local office, so that objection is
+  // answered first. On the master page the pricing question leads instead.
+  const faqs =
+    variant === 'near-me'
+      ? FAQS
+      : [...FAQS.filter((f) => f.id !== 'local'), ...FAQS.filter((f) => f.id === 'local')];
 
   return (
     <section id="faq" className="bg-zinc-950 py-20 sm:py-28">
@@ -59,9 +84,9 @@ export function FAQ() {
         </div>
 
         <div className="mb-12 border-t border-zinc-800">
-          {FAQS.map((faq, i) => (
+          {faqs.map((faq, i) => (
             <FAQAccordion
-              key={i}
+              key={faq.question}
               question={faq.question}
               answer={faq.answer}
               isOpen={openIndex === i}

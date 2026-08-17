@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface FAQAccordionProps {
   question: string;
@@ -23,21 +22,23 @@ export function FAQAccordion({ question, answer, isOpen, onToggle }: FAQAccordio
           {isOpen ? '-' : '+'}
         </span>
       </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="pb-6 text-zinc-400 leading-relaxed max-w-3xl pr-12">
-              {answer}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/*
+        Always mounted, never conditionally rendered. Collapsing by unmounting kept
+        every closed answer out of the server-rendered HTML, so ad-platform and search
+        crawlers saw the questions and none of the answers. Framer applies `initial`
+        as inline style during SSR, so closed items ship collapsed (no flash) with
+        their text still in the document.
+      */}
+      <motion.div
+        initial={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+        animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="overflow-hidden"
+      >
+        <div className="pb-6 text-zinc-400 leading-relaxed max-w-3xl pr-12">
+          {answer}
+        </div>
+      </motion.div>
     </div>
   );
 }

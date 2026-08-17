@@ -4,10 +4,12 @@ import { useRef, useEffect, useState } from 'react';
 
 export function SocialProofBar() {
   const items = [
-    "$21.8M+ Tax Savings",
-    "200+ Clients Served",
-    "4.96★ Reviews",
-    "5+ Years Experience",
+    "$100.2M Overstated Gains Corrected",
+    "802 Reports Reviewed",
+    "737+ Done-For-You Clients",
+    "1,410+ Clients Served",
+    "6.7M Transactions Reconciled",
+    "5★ Average Review",
     "USA · AU · CA · UK · NZ"
   ];
 

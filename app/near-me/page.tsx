@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Navbar } from '@/components/layout/Navbar';
 import { Hero } from '@/components/sections/Hero';
 import { SocialProofBar } from '@/components/sections/SocialProofBar';
@@ -12,12 +13,29 @@ import { FinalCTA } from '@/components/sections/FinalCTA';
 import { Footer } from '@/components/layout/Footer';
 import { FloatingMobileCTA } from '@/components/layout/FloatingMobileCTA';
 
-export default function Home() {
+/**
+ * Landing page for the "Crypto Accountant Near Me" ad group.
+ *
+ * Same sections as the master page. The only deltas are the hero, which leads with
+ * remote / working across the US so the local-office objection is answered before the visitor
+ * scrolls, and the FAQ, which hoists "Are you local to me?" to the first question.
+ *
+ * noindex: paid-traffic destination, kept out of the index so it cannot compete with
+ * cryptotaxmadeeasy.com for organic.
+ */
+export const metadata: Metadata = {
+  title: 'Crypto Accountant Near You | We Work Remotely | Crypto Tax Made Easy',
+  description:
+    'Crypto-fluent accountants are scarce locally. We work remotely with clients across the US, reconciling every transaction by hand. 802 client reports reviewed. Free 15-minute call.',
+  robots: { index: false, follow: false },
+};
+
+export default function NearMe() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <Hero />
+        <Hero variant="near-me" />
         <SocialProofBar />
         <SocialProofQuotes />
         <ProblemSection />
@@ -25,7 +43,7 @@ export default function Home() {
         <HowItWorks />
         <Testimonials />
         <WhyCTME />
-        <FAQ />
+        <FAQ variant="near-me" />
         <FinalCTA />
       </main>
       <Footer />

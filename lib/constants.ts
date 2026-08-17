@@ -37,6 +37,25 @@ export const QUALIFYING_TRANSACTION_INDEX = 2;
 export const MINIMUM_ENGAGEMENT_USD = 1500;
 export const COURSE_URL = 'https://cryptotaxmadeeasy.com/crypto-tax-made-easy-course/';
 
+/**
+ * Extension-deadline window. Gates the seasonal banner and the FinalCTA urgency
+ * line so they appear and disappear together.
+ *
+ * Evaluated at build time, not in the browser: this app is statically exported to
+ * a Cloudflare worker, so the value is baked into the bundle. Flipping the window
+ * requires a redeploy, which is intentional. It keeps the banner off the critical
+ * render path and out of the client bundle entirely.
+ */
+export const EXTENSION_DEADLINE_WINDOW = {
+  start: '2026-09-01',
+  end: '2026-10-15',
+} as const;
+
+export function isExtensionSeasonActive(now: Date = new Date()): boolean {
+  const today = now.toISOString().slice(0, 10);
+  return today >= EXTENSION_DEADLINE_WINDOW.start && today <= EXTENSION_DEADLINE_WINDOW.end;
+}
+
 export const COUNTRIES: Country[] = [
   'Australia',
   'Canada',

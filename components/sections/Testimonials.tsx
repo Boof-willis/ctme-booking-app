@@ -21,9 +21,14 @@ export function Testimonials() {
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight mb-8">
             What Happens When We Review Your Report
           </h2>
-          <div className="inline-flex items-center justify-center gap-2 border border-[#beb086] bg-[#beb086]/5 px-4 py-2 font-mono text-sm text-[#beb086]">
-            ★ Rated 4.96 Stars · 200+ Reviews
-          </div>
+          <a
+            href="https://cryptotaxmadeeasy.com/crypto-tax-made-easy-reviews/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 border border-[#beb086] bg-[#beb086]/5 px-4 py-2 font-mono text-sm text-[#beb086] hover:bg-[#beb086]/10 transition-colors"
+          >
+            ★ 5.0 Average · 37 Five-Star Client Reviews <span>→</span>
+          </a>
         </div>
 
         <div className="md:columns-2 gap-6 space-y-6 mb-16">
@@ -82,6 +87,27 @@ export function Testimonials() {
             </p>
             <StarRow />
             <div className="font-bold text-white">— Richee</div>
+            <div className="font-mono text-xs text-zinc-500 mt-1 uppercase tracking-wider">Verified Client</div>
+          </div>
+
+          {/* Testimonial 5 (KayCee) — the sharpest "your tools disagree" story on file */}
+          <div className="break-inside-avoid bg-zinc-900 border border-zinc-800 p-8 shadow-2xl shadow-black/40">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-6 pb-6 border-b border-zinc-800">
+              <div>
+                <span className="block text-zinc-500 text-xs font-mono uppercase tracking-wider mb-2">Koinly reported:</span>
+                <span className="text-xl sm:text-2xl font-bold text-amber-500">Millions in gains</span>
+              </div>
+              <div>
+                <span className="block text-zinc-500 text-xs font-mono uppercase tracking-wider mb-2">After our review:</span>
+                <span className="text-xl sm:text-2xl font-bold text-[#beb086]">Negative gains</span>
+              </div>
+            </div>
+            <span className="block text-5xl font-sans text-[#beb086]/20 leading-none mb-2 -ml-2">"</span>
+            <p className="text-zinc-300 leading-relaxed mb-8 relative z-10">
+              Matty made the process so easy to follow to sort out my taxes. Koinly had reported millions in capital gains profit (although this was untrue) and after his help, which saved me days of work had I tried to figure things out myself, my capital gains was actually into the negative! If you'd rather pay your money to the government then this wouldn't be the service for you.
+            </p>
+            <StarRow />
+            <div className="font-bold text-white">— KayCee</div>
             <div className="font-mono text-xs text-zinc-500 mt-1 uppercase tracking-wider">Verified Client</div>
           </div>
         </div>
