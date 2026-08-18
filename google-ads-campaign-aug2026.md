@@ -174,7 +174,18 @@ Answering the local objection in the SERP means the wasted clicks never get paid
 
 ## 5. Extensions
 
-- **Sitelinks:** How It Works (`/#how-it-works`) · The 802-Report Study (`/#study`) · Client Results (`/#results`) · Common Questions (`/#faq`)
+**Sitelinks** — all four anchors are live on the page. Text ≤25 chars, descriptions ≤35.
+
+| Text | Description 1 | Description 2 | URL |
+|---|---|---|---|
+| How It Works | 4 steps, one call to start. | Free 15-minute consultation. | `https://book.ctme.io/#how-it-works` |
+| The 802-Report Study | Every report had an error. | 56% overpaid. 44% exposed. | `https://book.ctme.io/#study` |
+| Client Results | Millions in gains, corrected. | 5.0 average from 37 reviews. | `https://book.ctme.io/#results` |
+| Common Questions | Pricing, security, timelines. | Yes, we work remotely. | `https://book.ctme.io/#faq` |
+
+**Display path:** `path1 = crypto-accountant`. The ad otherwise shows a bare
+`book.ctme.io`, which wastes the one line of the URL that can carry a keyword.
+
 - **Callouts:** Flat-Rate Pricing · We Work Remotely · Audit-Ready Reports · 6.7M Transactions Reconciled · Free 15-Minute Call
 - **Structured snippet** (Services): DeFi · NFTs · On-Chain Perps · Multi-Chain · Multi-Year Cleanup
 - **No call extension.** Every conversion path runs through the survey, which does the
@@ -200,6 +211,19 @@ Reporting is **server-side through Ockno**, not client-side gtag. The flow:
    client-side `gtag('event', 'conversion')`, because that would create a second,
    un-deduplicated conversion sitting next to the one Ockno already reports.
 
+**gclid capture is verified.** A real submission through `POST /api/ghl/contact` was
+tested end to end and the contact came back with `attributionSource.gclid` and
+`lastAttributionSource.gclid` both populated. Those are the only two native gclid fields
+GHL exposes, and Ockno reads them.
+
+One caveat found during that test: **15 of the 20 GHL custom fields the app writes do not
+exist in the sub-account**, so GHL silently discards them on every submission (it accepts
+unknown keys with a 201 and no error). Attribution is unaffected, so conversion reporting
+is fine — but `utm_source`, `utm_medium`, `utm_campaign`, `utm_content`, `utm_term`,
+`landing_url`, `gclid`, `fbclid`, `country`, `blockchains_used` and all three
+`estimated_*` qualifier brackets are being lost. That kills campaign/keyword segmentation
+inside GHL and hides lead quality. Create those fields before launch.
+
 What actually has to be true before launch, all outside this repo:
 
 - The **Lead** and **Call Booked** conversion actions exist in Google Ads with sane
@@ -221,18 +245,33 @@ keywords earn.
 
 **Account level** (attaches to every future Search campaign, including the four paused ones)
 
-`"free"` · `"cheap"` · `"jobs"` · `"salary"` · `"hiring"` · `"how to"` · `"diy"` ·
+`"cheap"` · `"jobs"` · `"salary"` · `"hiring"` · `"how to"` · `"diy"` ·
 `"reddit"` · `"calculator"` · `"template"` · `"certification"` · `"salary guide"`
+
+> **Do not add a blanket `"free"` negative.** The earlier keyword research recommended
+> one; it blocks our own offer. Every CTA on the page reads "Book Your Free
+> Consultation", one RSA headline is "Free Consultation", and both paused VM campaigns
+> are named "Free Crypto Tax Review". A phrase negative on `free` would suppress
+> `free crypto tax consultation` and `free crypto tax review` — buyers using our exact
+> language. Block the DIY tool-hunters specifically instead:
+>
+> `"free crypto tax software"` · `"free crypto tax calculator"` · `"free crypto tax report"`
 
 **Campaign level**
 
 | Negative | Why campaign-level rather than account-level |
 |---|---|
-| `"software"` | CTME's course for accounting firms may legitimately want software-comparison traffic later |
-| `"course"` | Same. CTME sells a course; a future campaign will bid on this rather than block it |
+| `"course"` | CTME sells a course; a future campaign will bid on this rather than block it |
 | `"coinbase"` | Exchange 1099 hunting. High volume, informational |
 | `"binance"` | Same pattern |
 | `"crypto tax accounting"` | Classified informational-only at 210/mo despite looking commercial. An expensive trap at these bids |
+
+> **`"software"` was dropped as a negative.** Also carried over from the keyword
+> research. It blocks `crypto tax software accountant` and similar, which is arguably
+> our best-qualified searcher: someone who already has software, has concluded it is
+> wrong, and now wants a human. That is the entire premise of the data-problem angle.
+> Watch the search terms report instead and negate specific tool-hunting queries as
+> they appear.
 
 **Add in week 1.** The survey disqualifies below ~$50k gains / $100k portfolio / 6k
 transactions (`lib/qualification.ts`) and routes those visitors to the course. Review the
