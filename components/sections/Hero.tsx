@@ -42,41 +42,41 @@ export function Hero({ variant = 'master' }: { variant?: HeroVariant }) {
   const copy = VARIANTS[variant];
 
   return (
-    <section className="relative min-h-[85vh] flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-32 sm:pt-40 pb-16 overflow-hidden">
+    <section className="relative min-h-[72vh] flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-28 sm:pt-32 pb-10 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(190,176,134,0.08)_0%,transparent_70%)] pointer-events-none" />
 
       <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center w-full">
         <SeasonalBanner />
 
         {/* Group 1: Eyebrow + H1 */}
-        <div className="mb-6">
-          <span className="font-mono text-xs sm:text-sm uppercase tracking-widest text-[#beb086] mb-6 block">
+        <div className="mb-4">
+          <span className="font-mono text-xs sm:text-sm uppercase tracking-widest text-[#beb086] mb-4 block">
             {copy.eyebrow}
           </span>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-[1.1]">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.1]">
             {copy.headline}
           </h1>
         </div>
 
         {/* Group 2: Stat + Subtext */}
-        <div className="mb-12 flex flex-col items-center">
-          <span className="text-5xl md:text-6xl font-mono text-[#beb086]">
+        <div className="mb-8 flex flex-col items-center">
+          <span className="text-4xl md:text-5xl font-mono text-[#beb086]">
             $100.2M
           </span>
-          <span className="font-mono text-xs sm:text-sm uppercase text-zinc-500 mt-4 tracking-wider max-w-md leading-relaxed">
+          <span className="font-mono text-xs sm:text-sm uppercase text-zinc-500 mt-3 tracking-wider max-w-md leading-relaxed">
             in overstated gains corrected across 802 client reports
           </span>
         </div>
 
         {/* Group 3: Main body paragraph */}
-        <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+        <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-8 leading-relaxed">
           {copy.body}
         </p>
 
         {/* Group 4: Trust metrics + Buttons */}
         <div className="flex flex-col items-center w-full">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-zinc-400 font-mono text-sm tracking-tight mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-zinc-400 font-mono text-sm tracking-tight mb-6">
             <span className="flex items-center gap-1">
               <span className="text-[#beb086]">★★★★★</span>
               <span className="ml-1">5.0 Average</span>
