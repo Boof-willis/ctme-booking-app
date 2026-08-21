@@ -5,8 +5,23 @@ import { motion } from 'framer-motion';
 import BackButton from '@/components/BackButton';
 import { isValidEmail, isValidPhone } from '@/lib/validation';
 import { getDialCodeForCountry } from '@/lib/countries';
+import { LeadPath } from '@/types/survey';
+
+const COPY: Record<LeadPath, { heading: string; subline: string; button: string }> = {
+  call: {
+    heading: 'Great — let’s find you a time to talk',
+    subline: '> We’ll use this to send your booking confirmation',
+    button: '[ See Available Times ]',
+  },
+  quote: {
+    heading: 'Great — where should we send the quote?',
+    subline: '> We’ll use this to send your quote',
+    button: '[ Submit for Quote ]',
+  },
+};
 
 interface StepContactInfoProps {
+  variant?: LeadPath;
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -20,6 +35,7 @@ interface StepContactInfoProps {
 }
 
 export default function StepContactInfo({
+  variant = 'call',
   firstName: initialFirstName,
   lastName: initialLastName,
   email: initialEmail,
@@ -32,6 +48,7 @@ export default function StepContactInfo({
   error,
 }: StepContactInfoProps) {
   const defaultDialCode = getDialCodeForCountry(country, otherCountryCode);
+  const copy = COPY[variant];
 
   const initialFullName = [initialFirstName, initialLastName].filter(Boolean).join(' ');
   const [fullName, setFullName] = useState(initialFullName || '');
@@ -139,10 +156,10 @@ export default function StepContactInfo({
       <BackButton onClick={onBack} />
 
       <h1 className="text-2xl sm:text-[28px] font-bold text-white mb-2">
-        Great — let&apos;s find you a time to talk
+        {copy.heading}
       </h1>
       <p className="font-mono text-[#beb086] text-sm mb-8">
-        &gt; We&apos;ll use this to send your booking confirmation
+        {copy.subline}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -282,7 +299,7 @@ export default function StepContactInfo({
               Saving…
             </span>
           ) : (
-            '[ See Available Times ]'
+            copy.button
           )}
         </motion.button>
       </form>

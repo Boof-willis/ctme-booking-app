@@ -5,6 +5,8 @@ import { STEPS } from '@/lib/constants';
 
 interface ProgressBarProps {
   currentStep: number;
+  /** Overrides STEPS.length when a path ends early (e.g. quote path has no calendar step). */
+  totalSteps?: number;
 }
 
 /**
@@ -22,8 +24,8 @@ function perceivedProgress(step: number, total: number): number {
   return START_PERCENT + (END_PERCENT - START_PERCENT) * eased;
 }
 
-export default function ProgressBar({ currentStep }: ProgressBarProps) {
-  const total = STEPS.length;
+export default function ProgressBar({ currentStep, totalSteps }: ProgressBarProps) {
+  const total = totalSteps ?? STEPS.length;
   const isComplete = currentStep >= total;
   const progressPercent = isComplete ? 100 : perceivedProgress(currentStep, total);
   const clampedProgress = Math.min(Math.max(progressPercent, 2), 100);

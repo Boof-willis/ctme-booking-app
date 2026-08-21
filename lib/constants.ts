@@ -34,6 +34,7 @@ export const QUALIFYING_GAINS_INDEX = 2;
 export const QUALIFYING_PORTFOLIO_INDEX = 2;
 export const QUALIFYING_TRANSACTION_INDEX = 2;
 
+/** Per Matt (Aug 2026): starter package is $1,500, so every price mention says "$1,500 minimum". */
 export const MINIMUM_ENGAGEMENT_USD = 1500;
 export const COURSE_URL = 'https://cryptotaxmadeeasy.com/crypto-tax-made-easy-course/';
 

@@ -22,7 +22,13 @@ import {
   TransactionBracket,
 } from '@/types/survey';
 import { isHoneypotFilled } from '@/lib/validation';
-import { trackSurveyStarted, trackEmailCaptured, trackAppointmentBooked, trackQualified } from '@/lib/tracking';
+import {
+  trackSurveyStarted,
+  trackEmailCaptured,
+  trackAppointmentBooked,
+  trackQualified,
+  trackQuoteRequested,
+} from '@/lib/tracking';
 import { STEPS, GAINS_BRACKETS, PORTFOLIO_BRACKETS, TRANSACTION_BRACKETS } from '@/lib/constants';
 import { isQualified } from '@/lib/qualification';
 
@@ -64,6 +70,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
     (transactionBracket: TransactionBracket) => {
       state.setQualifier({ transactionBracket });
       if (isQualified({ ...state.surveyData, transactionBracket })) {
+        state.setLeadPath('call');
         trackQualified();
         state.goNext();
       } else {
@@ -75,9 +82,17 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
 
   const handleContactSubmit = useCallback(
     async (firstName: string, lastName: string | undefined, email: string, phone: string | undefined, honeypot: string, agreedToTos: boolean) => {
+      const leadPath = state.surveyData.leadPath ?? 'call';
+      const isQuote = leadPath === 'quote';
+
       if (isHoneypotFilled(honeypot)) {
         state.setContactInfo(firstName, lastName, email, phone, honeypot, agreedToTos);
-        state.goNext();
+        if (isQuote) {
+          state.completeFlow();
+          router.push('/consultation/quote-requested');
+        } else {
+          state.goNext();
+        }
         return;
       }
 
@@ -95,6 +110,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
             email,
             phone,
             tag,
+            leadPath,
             surveyData: {
               country: state.surveyData.country,
               otherCountryName: state.surveyData.otherCountryName,
@@ -115,6 +131,17 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
         if (!res.ok) throw new Error('Failed to save contact');
 
         const data = await res.json();
+
+        // Quote path ends here: no calendar, contact is tagged for the GHL
+        // quote trigger. Don't store contactId — nothing downstream needs it.
+        if (isQuote) {
+          trackEmailCaptured('quote');
+          trackQuoteRequested();
+          state.completeFlow();
+          router.push('/consultation/quote-requested');
+          return;
+        }
+
         state.setContactId(data.contactId);
         trackEmailCaptured();
         state.goNext();
@@ -124,7 +151,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
         setContactSubmitting(false);
       }
     },
-    [state, tag]
+    [state, tag, router]
   );
 
   const handleSlotSelect = useCallback(
@@ -189,8 +216,16 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
   }
 
   if (state.isDisqualified) {
-    return <DisqualifiedScreen reason="size" utmParams={state.surveyData.utmParams} />;
+    return (
+      <DisqualifiedScreen
+        reason="size"
+        utmParams={state.surveyData.utmParams}
+        onRequestQuote={state.requestQuote}
+      />
+    );
   }
+
+  const isQuotePath = state.surveyData.leadPath === 'quote';
 
   const renderStep = () => {
     switch (state.currentStep) {
@@ -246,6 +281,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
         return (
           <StepBlockchains
             key="blockchains"
+            hint={isQuotePath ? 'Select all that apply — this helps us scope your quote' : undefined}
             selected={state.surveyData.blockchains}
             onChange={state.setBlockchains}
             onNext={state.goNext}
@@ -267,6 +303,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
         return (
           <StepContactInfo
             key="contact-info"
+            variant={isQuotePath ? 'quote' : 'call'}
             firstName={state.surveyData.firstName}
             lastName={state.surveyData.lastName}
             email={state.surveyData.email}
@@ -364,7 +401,10 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
 
   return (
     <div>
-      <ProgressBar currentStep={state.currentStep} />
+      <ProgressBar
+        currentStep={state.currentStep}
+        totalSteps={isQuotePath ? STEPS.length - 1 : STEPS.length}
+      />
       <AnimatePresence mode="wait">{renderStep()}</AnimatePresence>
     </div>
   );

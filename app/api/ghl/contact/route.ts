@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrUpdateContact, updateContact } from '@/lib/ghl';
 import { isValidEmail, sanitize, isHoneypotFilled } from '@/lib/validation';
-import { UTMParams } from '@/types/survey';
+import { UTMParams, LeadPath } from '@/types/survey';
 import { isQualified } from '@/lib/qualification';
 import { GAINS_BRACKETS, PORTFOLIO_BRACKETS, TRANSACTION_BRACKETS } from '@/lib/constants';
 
@@ -69,6 +69,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { firstName, lastName, email, phone, surveyData, tag } = body;
+    const leadPath: LeadPath = body.leadPath === 'quote' ? 'quote' : 'call';
 
     const qualifier = {
       gainsBracket: pickBracket(surveyData?.gainsBracket, GAINS_BRACKETS),
@@ -79,9 +80,18 @@ export async function POST(req: NextRequest) {
 
     const tagList: string[] = [];
     if (tag && typeof tag === 'string') tagList.push(sanitize(tag));
-    // Anyone reaching contact capture has passed the gate client-side; tag so
-    // GHL workflows can distinguish gated bookings from legacy/other sources.
+    // Contact capture is reached either by passing the gate (call path) or via
+    // "Request Quote" on the under-threshold screen (quote path). `qualified` is
+    // recomputed here from the brackets rather than trusted from the client;
+    // `quote-requested` marks the quote path so the GHL contact-created triggers
+    // can route it to the quote pipeline instead of the call pipeline.
     if (qualified) tagList.push('qualified');
+    if (leadPath === 'quote') tagList.push('quote-requested');
+    // Dedicated workflow-trigger tags, kept separate from the descriptive tags
+    // above so GHL automations can add/remove them (e.g. for re-entry) without
+    // losing the record of what the lead actually did.
+    if (qualified) tagList.push('high value');
+    if (leadPath === 'quote') tagList.push('low value');
     const tags = tagList.length > 0 ? tagList : undefined;
 
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length === 0) {
@@ -159,6 +169,7 @@ export async function POST(req: NextRequest) {
             utmParams: surveyData?.utmParams,
             ockno_id: surveyData?.utmParams?.ockno_id,
             tags,
+            leadPath,
             gainsBracket: qualifier.gainsBracket,
             portfolioBracket: qualifier.portfolioBracket,
             transactionBracket: qualifier.transactionBracket,

@@ -11,6 +11,7 @@ import {
   GainsBracket,
   PortfolioBracket,
   TransactionBracket,
+  LeadPath,
 } from '@/types/survey';
 import { SESSION_KEYS, STEPS } from '@/lib/constants';
 import { parseUTMParams } from '@/lib/utm';
@@ -27,6 +28,7 @@ const DEFAULT_DATA: SurveyData = {
   hasTaxSoftware: undefined,
   taxSoftwareName: undefined,
   acknowledgedMinimum: undefined,
+  leadPath: undefined,
   firstName: undefined,
   lastName: undefined,
   email: undefined,
@@ -181,9 +183,23 @@ export function useSurveyState() {
     setSurveyData((prev) => ({ ...prev, acknowledgedMinimum }));
   }, []);
 
+  const setLeadPath = useCallback((leadPath: LeadPath | undefined) => {
+    setSurveyData((prev) => ({ ...prev, leadPath }));
+  }, []);
+
+  // Clear the path so a stale 'quote' can't survive re-answering the qualifiers.
   const disqualify = useCallback(() => {
+    setSurveyData((prev) => ({ ...prev, leadPath: undefined }));
     setIsDisqualified(true);
   }, []);
+
+  // "Request Quote" from the under-threshold screen: rejoin the flow at the
+  // step after the qualifiers, flagged so contact capture submits for a quote.
+  const requestQuote = useCallback(() => {
+    setSurveyData((prev) => ({ ...prev, leadPath: 'quote' }));
+    setIsDisqualified(false);
+    goNext();
+  }, [goNext]);
 
   const setTaxYears = useCallback((taxYears: TaxYear[]) => {
     setSurveyData((prev) => ({ ...prev, taxYears }));
@@ -235,7 +251,9 @@ export function useSurveyState() {
     setCountry,
     setQualifier,
     setAcknowledgedMinimum,
+    setLeadPath,
     disqualify,
+    requestQuote,
     setTaxYears,
     setBlockchains,
     setTaxSoftware,

@@ -11,9 +11,17 @@ interface StepBlockchainsProps {
   onChange: (chains: Blockchain[]) => void;
   onNext: () => void;
   onBack: () => void;
+  /** Quote path has no call, so the hint shouldn't mention one. */
+  hint?: string;
 }
 
-export default function StepBlockchains({ selected, onChange, onNext, onBack }: StepBlockchainsProps) {
+export default function StepBlockchains({
+  selected,
+  onChange,
+  onNext,
+  onBack,
+  hint = 'Select all that apply — this helps us prepare for your call',
+}: StepBlockchainsProps) {
   const toggle = (chain: Blockchain) => {
     onChange(
       selected.includes(chain)
@@ -35,7 +43,7 @@ export default function StepBlockchains({ selected, onChange, onNext, onBack }: 
         Which blockchains have you used?
       </h1>
       <p className="font-mono text-[#beb086] text-sm mb-8">
-        &gt; Select all that apply — this helps us prepare for your call
+        &gt; {hint}
       </p>
 
       <div className="flex flex-wrap gap-2.5 mb-8">

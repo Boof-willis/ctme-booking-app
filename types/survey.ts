@@ -19,6 +19,9 @@ export type GainsBracket = 'Under $10k' | '$10k – $50k' | '$50k – $250k' | '
 export type PortfolioBracket = 'Under $25k' | '$25k – $100k' | '$100k – $500k' | '$500k+';
 export type TransactionBracket = 'Under 1,000' | '1,000 – 6,000' | '6,000 – 20,000' | '20,000+';
 
+/** 'call' = passed the gate, books a consultation; 'quote' = under threshold, requested an email quote. */
+export type LeadPath = 'call' | 'quote';
+
 export interface UTMParams {
   utm_source?: string;
   utm_medium?: string;
@@ -45,6 +48,7 @@ export interface SurveyData {
   hasTaxSoftware?: boolean;
   taxSoftwareName?: TaxSoftware;
   acknowledgedMinimum?: boolean;
+  leadPath?: LeadPath;
   firstName?: string;
   lastName?: string;
   email?: string;

@@ -67,13 +67,26 @@ All API calls are proxied through `/api/ghl/*` server-side routes so the API key
 
 ## Survey Flow
 
-1. **Country** — disqualifies non-served regions
-2. **Tax Years** — multi-select
-3. **Blockchains Used** — multi-select
-4. **Tax Software** — yes/no with conditional follow-up
-5. **Contact Info** — name + email (creates GHL contact immediately)
-6. **Calendar** — slot picker from GHL calendar API
-7. **Confirmation** — last name + phone (appointment already booked)
+1. **Country**
+2. **Gains** / 3. **Portfolio** / 4. **Transactions** — the qualifier gate (`lib/qualification.ts`).
+   A lead qualifies for a call if gains ≥ $50k **or** portfolio ≥ $100k **or** ≥ 6,000 transactions.
+   Anyone under all three thresholds sees the under-threshold options screen
+   (`components/DisqualifiedScreen.tsx`): **Request Quote** (High Level Review Package) or **See the Course**.
+5. **Tax Years** — multi-select
+6. **Blockchains Used** — multi-select
+7. **Tax Software** — yes/no with conditional follow-up
+8. **Contact Info** (`#step-8`) — name + email + optional phone; creates the GHL contact immediately.
+   Copy and button differ by path: call path → "See Available Times", quote path → "Submit for Quote".
+9. **Calendar** — call path only; slot picker from GHL calendar API → `/consultation/thank-you`.
+   Quote path skips this and lands on `/consultation/quote-requested`.
+
+Both paths hit the same `POST /api/ghl/contact`. The server recomputes `qualified` from the
+brackets and tags the contact: descriptive tags (`qualified`, `quote-requested`) plus dedicated
+workflow-trigger tags (`high value` for qualified call leads, `low value` for quote leads).
+GHL workflows fire on the trigger tags — and may remove them to allow re-entry — while the
+descriptive tags stay as a permanent record. Opportunity/pipeline creation is handled in GHL,
+not by this app. The optional `GHL_CONTACT_WEBHOOK_URL` payload also includes
+`leadPath: 'call' | 'quote'`.
 
 ## Conversion Tracking
 
@@ -84,15 +97,19 @@ Google Ads conversion reporting). Page views are gtag's own default (automatic
 | Event | When | Meta Pixel | GA4 |
 |---|---|---|---|
 | Survey Started | Valid country selected (Step 1) | — | `survey_started` |
-| Lead Captured | Contact created (Step 5) | `Lead` | `generate_lead` |
-| Appointment Booked | Booking confirmed (Step 6, or via `/book` `/schedule` rebooking) | `Schedule` | `appointment_booked` |
+| Qualified / Disqualified | Gate result after Step 4 | `Qualified` / `Disqualified` (custom) | `qualified` / `disqualified` |
+| Quote Click / Course Click | Button tapped on the under-threshold screen | `QuoteClick` / `CourseClick` (custom) | `quote_click` / `course_click` |
+| Lead Captured | Contact created (Step 8, both paths; `lead_path` param = `call` or `quote`) | `Lead` | `generate_lead` |
+| Quote Requested | Contact created on the quote path (Step 8) | `QuoteRequested` (custom) | `quote_requested` |
+| Appointment Booked | Booking confirmed (Step 9, or via `/book` `/schedule` rebooking) | `Schedule` | `appointment_booked` |
 
 **Google Ads conversions are not fired from the browser.** They're reported server-side
 by Ockno: contact creation (Step 5) writes `gclid` and `ockno_id` onto the GHL contact
 (see `lib/ghl.ts`), booking confirmation (Step 6) moves the GHL pipeline opportunity to
 "Call Booked", and Ockno watches that pipeline stage change to push the conversion into
 Google Ads. Nothing in this app needs a Google Ads conversion label — that lives in
-Ockno's own configuration.
+Ockno's own configuration. Quote requests never reach "Call Booked", so they only report
+to Google Ads if Ockno is also pointed at the quote pipeline stage.
 
 ## Deploy to Vercel
 
