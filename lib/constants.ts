@@ -111,10 +111,14 @@ export const COUNTRY_PHONE_CODES: Record<string, string> = {
   USA: '+1',
 };
 
+/**
+ * Contact custom-field keys that exist in GHL. Country is a native contact
+ * field and attribution is stored natively via attributionSource, so neither
+ * is mirrored here. Checked against the location's field list 2026-08-21.
+ */
 export const GHL_CUSTOM_FIELDS = {
-  country: 'country',
   taxYears: 'which_tax_years_do_you_need_help_with',
-  blockchainsUsed: 'blockchains_used',
+  blockchainsUsed: 'if_no_which_blockchains_have_you_used_from_most_to_least',
   hasTaxSoftware: 'do_you_currently_have_crypto_tax_software_set_up',
   taxSoftwareName: 'if_yes_which_crypto_tax_software',
   estimatedGains: 'estimated_realized_gains',
@@ -122,16 +126,6 @@ export const GHL_CUSTOM_FIELDS = {
   estimatedTransactions: 'estimated_transaction_count',
   ocknoId: 'ockno_id',
   agreedToTos: 'agreed_to_tos',
-  utmSource: 'utm_source',
-  utmMedium: 'utm_medium',
-  utmCampaign: 'utm_campaign',
-  utmContent: 'utm_content',
-  utmTerm: 'utm_term',
-  placement: 'placement',
-  siteSourceName: 'site_source_name',
-  landingUrl: 'landing_url',
-  gclid: 'gclid',
-  fbclid: 'fbclid',
 } as const;
 
 export const SESSION_KEYS = {

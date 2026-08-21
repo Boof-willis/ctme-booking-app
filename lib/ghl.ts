@@ -24,13 +24,12 @@ function buildCustomFields(data: SurveyData): Array<{ key: string; field_value: 
     }
   };
 
-  set(GHL_CUSTOM_FIELDS.country, data.country === 'Other' && data.otherCountryName ? data.otherCountryName : data.country);
-
   const taxYearMap: Record<string, string> = { 'Before 2021': 'Before-2021' };
   const mappedYears = data.taxYears.map((y) => taxYearMap[y] || y);
   set(GHL_CUSTOM_FIELDS.taxYears, mappedYears);
 
-  set(GHL_CUSTOM_FIELDS.blockchainsUsed, data.blockchains.slice());
+  // Existing GHL field is LARGE_TEXT, so send a joined string rather than an array.
+  set(GHL_CUSTOM_FIELDS.blockchainsUsed, data.blockchains.length > 0 ? data.blockchains.join(', ') : undefined);
 
   set(GHL_CUSTOM_FIELDS.hasTaxSoftware, data.hasTaxSoftware === true ? 'Yes' : data.hasTaxSoftware === false ? 'No' : undefined);
 
@@ -48,17 +47,8 @@ function buildCustomFields(data: SurveyData): Array<{ key: string; field_value: 
   set(GHL_CUSTOM_FIELDS.ocknoId, data.utmParams.ockno_id);
   set(GHL_CUSTOM_FIELDS.agreedToTos, data.agreedToTos === true ? 'Yes' : data.agreedToTos === false ? 'No' : undefined);
 
-  const utm = data.utmParams;
-  set(GHL_CUSTOM_FIELDS.utmSource, utm.utm_source);
-  set(GHL_CUSTOM_FIELDS.utmMedium, utm.utm_medium);
-  set(GHL_CUSTOM_FIELDS.utmCampaign, utm.utm_campaign);
-  set(GHL_CUSTOM_FIELDS.utmContent, utm.utm_content);
-  set(GHL_CUSTOM_FIELDS.utmTerm, utm.utm_term);
-  set(GHL_CUSTOM_FIELDS.placement, utm.placement);
-  set(GHL_CUSTOM_FIELDS.siteSourceName, utm.site_source_name);
-  set(GHL_CUSTOM_FIELDS.landingUrl, utm.landing_url);
-  set(GHL_CUSTOM_FIELDS.gclid, utm.gclid);
-  set(GHL_CUSTOM_FIELDS.fbclid, utm.fbclid);
+  // Attribution (utm_*, gclid, fbclid, placement, landing url) is NOT written as
+  // custom fields: GHL stores it natively via attributionSource below.
 
   return fields;
 }
@@ -83,8 +73,7 @@ function buildAttributionSource(data: SurveyData): Record<string, string> {
 }
 
 export async function createOrUpdateContact(
-  data: SurveyData,
-  tags?: string[]
+  data: SurveyData
 ): Promise<Record<string, unknown>> {
   const customFields = buildCustomFields(data);
 
@@ -97,10 +86,6 @@ export async function createOrUpdateContact(
 
   if (customFields.length > 0) {
     body.customFields = customFields;
-  }
-
-  if (tags && tags.length > 0) {
-    body.tags = tags;
   }
 
   const attributionSource = buildAttributionSource(data);
@@ -145,6 +130,26 @@ export async function createOrUpdateContact(
     return JSON.parse(responseText);
   } catch {
     throw new Error(`GHL returned invalid JSON: ${responseText}`);
+  }
+}
+
+/**
+ * Add tags via the additive endpoint. The upsert body's `tags` is documented
+ * as replacing all existing tags, which would strip workflow-managed tags
+ * (sms eligible, active client, ...) on every resubmission.
+ */
+export async function addContactTags(contactId: string, tags: string[]): Promise<void> {
+  if (tags.length === 0) return;
+
+  const res = await fetch(`${GHL_BASE}/contacts/${contactId}/tags`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ tags }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`GHL add tags failed: ${res.status} ${text}`);
   }
 }
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createOrUpdateContact, updateContact } from '@/lib/ghl';
+import { createOrUpdateContact, updateContact, addContactTags } from '@/lib/ghl';
 import { isValidEmail, sanitize, isHoneypotFilled } from '@/lib/validation';
 import { UTMParams, LeadPath } from '@/types/survey';
 import { isQualified } from '@/lib/qualification';
@@ -32,34 +32,6 @@ function getIP(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 }
 
-const STANDARD_COUNTRIES = ['Australia', 'Canada', 'New Zealand', 'UK', 'USA'];
-
-function computeComplexityScore(
-  taxYears: string[],
-  blockchains: string[],
-  hasTaxSoftware: boolean,
-  country: string,
-): number {
-  let score = 0;
-
-  if (taxYears.includes('2023')) score += 10;
-  if (taxYears.includes('2022')) score += 10;
-  if (taxYears.includes('2021')) score += 15;
-  if (taxYears.includes('Before 2021')) score += 25;
-  if (taxYears.length > 2) score += 10;
-
-  if (blockchains.length >= 3) score += 15;
-  for (const chain of ['Ethereum', 'Arbitrum', 'Base', 'Avalanche', 'Other']) {
-    if (blockchains.includes(chain)) score += 10;
-  }
-
-  if (!hasTaxSoftware) score += 10;
-
-  if (country && !STANDARD_COUNTRIES.includes(country)) score += 15;
-
-  return score;
-}
-
 export async function POST(req: NextRequest) {
   const ip = getIP(req);
   if (!checkRateLimit(ip)) {
@@ -69,30 +41,27 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { firstName, lastName, email, phone, surveyData, tag } = body;
-    const leadPath: LeadPath = body.leadPath === 'quote' ? 'quote' : 'call';
 
     const qualifier = {
       gainsBracket: pickBracket(surveyData?.gainsBracket, GAINS_BRACKETS),
       portfolioBracket: pickBracket(surveyData?.portfolioBracket, PORTFOLIO_BRACKETS),
       transactionBracket: pickBracket(surveyData?.transactionBracket, TRANSACTION_BRACKETS),
     };
+    if (!qualifier.gainsBracket || !qualifier.portfolioBracket || !qualifier.transactionBracket) {
+      return NextResponse.json({ error: 'Qualifier answers are required' }, { status: 400 });
+    }
+
+    // The path is derived from the brackets, never from the client: qualified
+    // leads get the call workflow, everyone else gets the quote workflow. This
+    // guarantees exactly one of `high value` / `low value` per submission.
     const qualified = isQualified(qualifier);
+    const leadPath: LeadPath = qualified ? 'call' : 'quote';
 
     const tagList: string[] = [];
     if (tag && typeof tag === 'string') tagList.push(sanitize(tag));
-    // Contact capture is reached either by passing the gate (call path) or via
-    // "Request Quote" on the under-threshold screen (quote path). `qualified` is
-    // recomputed here from the brackets rather than trusted from the client;
-    // `quote-requested` marks the quote path so the GHL contact-created triggers
-    // can route it to the quote pipeline instead of the call pipeline.
-    if (qualified) tagList.push('qualified');
-    if (leadPath === 'quote') tagList.push('quote-requested');
-    // Dedicated workflow-trigger tags, kept separate from the descriptive tags
-    // above so GHL automations can add/remove them (e.g. for re-entry) without
-    // losing the record of what the lead actually did.
-    if (qualified) tagList.push('high value');
-    if (leadPath === 'quote') tagList.push('low value');
-    const tags = tagList.length > 0 ? tagList : undefined;
+    // Descriptive tags (permanent record of the path) + workflow-trigger tags.
+    tagList.push(qualified ? 'qualified' : 'quote-requested');
+    tagList.push(qualified ? 'high value' : 'low value');
 
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length === 0) {
       return NextResponse.json({ error: 'First name is required' }, { status: 400 });
@@ -120,7 +89,7 @@ export async function POST(req: NextRequest) {
       otherCountryName: surveyData?.otherCountryName,
       otherCountryCode: surveyData?.otherCountryCode,
       utmParams: surveyData?.utmParams || {},
-    }, tags);
+    });
 
     const contactId =
       (result as any)?.contact?.id ??
@@ -131,58 +100,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unexpected response from booking system' }, { status: 502 });
     }
 
-    const webhookUrl = process.env.GHL_CONTACT_WEBHOOK_URL;
-    if (webhookUrl) {
-      const taxYears: string[] = surveyData?.taxYears || [];
-      const blockchains: string[] = surveyData?.blockchains || [];
-      const hasTaxSoftware: boolean = surveyData?.hasTaxSoftware ?? true;
-      const country: string = surveyData?.country || '';
+    // Tags go through the additive endpoint rather than the upsert body, so a
+    // resubmission never strips tags that workflows added (sms eligible, etc).
+    await addContactTags(contactId, tagList);
 
-      const complexityScore = computeComplexityScore(taxYears, blockchains, hasTaxSoftware, country);
-      const complexityTier =
-        complexityScore <= 20
-          ? 'Tier 1 - Simple'
-          : complexityScore <= 45
-            ? 'Tier 2 - Moderate DeFi / NFT trader'
-            : complexityScore <= 75
-              ? 'Tier 3 - High Complexity / Degen'
-              : 'Tier 4 - Whale / Enterprise';
-
+    // Hand the lead to the matching GHL workflow. The inbound-webhook trigger
+    // gives the workflow the full payload as {{inboundWebhookRequest.*}}.
+    const webhookUrl =
+      leadPath === 'call' ? process.env.GHL_WEBHOOK_CALL_LEAD : process.env.GHL_WEBHOOK_QUOTE_LEAD;
+    if (!webhookUrl) {
+      console.error(`GHL webhook URL for ${leadPath} path is not configured`);
+    } else {
+      const payload = {
+        contactId,
+        firstName: sanitize(firstName),
+        lastName: lastName ? sanitize(lastName) : undefined,
+        email: sanitize(email),
+        phone: phone ? sanitize(phone) : undefined,
+        country: surveyData?.country,
+        otherCountryName: surveyData?.otherCountryName,
+        otherCountryCode: surveyData?.otherCountryCode,
+        taxYears: surveyData?.taxYears || [],
+        blockchains: surveyData?.blockchains || [],
+        hasTaxSoftware: surveyData?.hasTaxSoftware,
+        taxSoftwareName: surveyData?.taxSoftwareName,
+        agreedToTos: surveyData?.agreedToTos ?? false,
+        utmParams: surveyData?.utmParams || {},
+        ockno_id: surveyData?.utmParams?.ockno_id,
+        tags: tagList,
+        leadPath,
+        qualified,
+        gainsBracket: qualifier.gainsBracket,
+        portfolioBracket: qualifier.portfolioBracket,
+        transactionBracket: qualifier.transactionBracket,
+      };
       try {
-        await fetch(webhookUrl, {
+        const hook = await fetch(webhookUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contactId,
-            firstName: sanitize(firstName),
-            lastName: lastName ? sanitize(lastName) : undefined,
-            email: sanitize(email),
-            phone: phone ? sanitize(phone) : undefined,
-            country: surveyData?.country,
-            otherCountryName: surveyData?.otherCountryName,
-            otherCountryCode: surveyData?.otherCountryCode,
-            taxYears: surveyData?.taxYears,
-            blockchains: surveyData?.blockchains,
-            hasTaxSoftware: surveyData?.hasTaxSoftware,
-            taxSoftwareName: surveyData?.taxSoftwareName,
-            agreedToTos: surveyData?.agreedToTos ?? false,
-            utmParams: surveyData?.utmParams,
-            ockno_id: surveyData?.utmParams?.ockno_id,
-            tags,
-            leadPath,
-            gainsBracket: qualifier.gainsBracket,
-            portfolioBracket: qualifier.portfolioBracket,
-            transactionBracket: qualifier.transactionBracket,
-            qualified,
-            complexityScore,
-            complexityTier,
-            taxYearsCount: taxYears.length,
-            chainCount: blockchains.length,
-            hasPreR2021: taxYears.includes('Before 2021'),
-          }),
+          body: JSON.stringify(payload),
         });
+        console.log(`GHL ${leadPath} webhook response:`, hook.status, (await hook.text()).slice(0, 200));
       } catch (err) {
-        console.error('Webhook fire failed:', err);
+        console.error(`GHL ${leadPath} webhook fire failed:`, err);
       }
     }
 

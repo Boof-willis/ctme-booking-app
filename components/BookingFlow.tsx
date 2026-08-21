@@ -82,6 +82,7 @@ function BookingFlowInner() {
           endTime: selectedSlot.endTime,
           timezone,
           firstName: trimmedFirstName,
+          lastName: trimmedLastName,
           utmParams,
         }),
       });

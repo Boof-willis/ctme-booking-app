@@ -182,6 +182,7 @@ export default function SurveyFlow({ tag }: { tag?: string } = {}) {
         endTime: selectedSlot.endTime,
         timezone,
         firstName: surveyData.firstName,
+        lastName: surveyData.lastName,
       }),
     });
 
