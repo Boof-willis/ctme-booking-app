@@ -1,7 +1,7 @@
 # GHL rebuild checklist — Paid Ads intake + quote path
 
 **Status 2026-08-21: LIVE.** App deployed (`1d17bef`, worker version `443b74c4`), both paths smoke-tested in prod.
-Remaining: WF-4a/4b/5 remove lists, WF-6 second trigger, confirm WF-2 fires on first real booking.
+Remaining: confirm WF-2 fires on the first real booking (legacy trigger). Everything else complete.
 
 Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md](ghl-workflows.md).
 
@@ -82,14 +82,14 @@ Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md
 - [x] WF-3 check: No-track 5h SMS-eligibility check — add an Ineligible branch (Email 2 → Go To Wait 2h `2890be18`) if missing
 
 **WF-4a Cancellation, WF-4b No-Show**
-- [ ] Step 1 remove-from-workflow: keep `a6767d56` (WF-3 Reminders) and **add** Call Lead + Quote Lead
+- [x] Step 1 remove-from-workflow: keep `a6767d56` (WF-3 Reminders) and **add** Call Lead + Quote Lead
 - [ ] Before the final "Update opportunity → Abandoned": insert Find Opportunity (Trent's, open) → Found → Update
 
 **WF-5 Qualified**
-- [ ] Remove-from-workflow list: add Call Lead + Quote Lead
+- [x] Remove-from-workflow list: add Call Lead + Quote Lead
 
 **WF-6 Karbon**
-- [ ] Add second trigger: Pipeline Stage Changed → Paid Ads / **Purchased // Awaiting Work Creation** `092643df…`
+- [x] Add second trigger: Pipeline Stage Changed → Paid Ads / **Purchased // Awaiting Work Creation** `092643df…`
 
 **WF-7b Call Outcome** — done as a separate **WF-7c** (Meeting Held → Showed) + new **Call Held** workflow (Appointment Status Showed → tag `call completed` + `Call Completed Date`, once per contact)
 - [x] Add trigger/branch: Call Outcome = **Meeting Held** → Update appointment status **Showed** → Add tag `call completed` → set `call_completed_date` = `{{right_now.date}}`
