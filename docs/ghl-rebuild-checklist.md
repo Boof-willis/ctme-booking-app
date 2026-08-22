@@ -1,5 +1,8 @@
 # GHL rebuild checklist — Paid Ads intake + quote path
 
+**Status 2026-08-21: LIVE.** App deployed (`1d17bef`, worker version `443b74c4`), both paths smoke-tested in prod.
+Remaining: WF-4a/4b/5 remove lists, WF-6 second trigger, confirm WF-2 fires on first real booking.
+
 Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md](ghl-workflows.md).
 
 ## A. Collect IDs (write them here)
@@ -35,7 +38,7 @@ Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md
 ## B. Paid Ads pipeline
 
 - [x] Pipeline and stages already exist (see A). Leave as-is.
-- [ ] Add contact custom field `call_completed_date` (date)
+- [x] Contact field `Call Completed Date` (`call_completed_date`, ID `QUz7Al0TpLiPSN5CQmPD`) created via API
 
 ## C. Build "Booking App: Call Lead" (clone WF-1)
 
@@ -74,9 +77,9 @@ Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md
 - [ ] Check Execution Logs: has this fired for an app booking in the last 30 days? If not, replace trigger with **Appointment Status** · Normal · calendar `hepJCqq…` · Modified By = Customer **and** API
 
 **WF-3 Reminders, WF-7a No-Show Detection**
-- [ ] Same trigger check/migration as WF-2. No other changes.
-- [ ] WF-3 fix: No-track 2h "Tax Software = Yes" Go-To → retarget from `54a68597` to `c5520392` (Wait 30m)
-- [ ] WF-3 check: No-track 5h SMS-eligibility check — add an Ineligible branch (Email 2 → Go To Wait 2h `2890be18`) if missing
+- [ ] Same trigger check/migration as WF-2 — only if WF-2's execution log shows it stopped firing for app bookings.
+- [x] WF-3 fix: No-track 2h "Tax Software = Yes" Go-To → retarget from `54a68597` to `c5520392` (Wait 30m)
+- [x] WF-3 check: No-track 5h SMS-eligibility check — add an Ineligible branch (Email 2 → Go To Wait 2h `2890be18`) if missing
 
 **WF-4a Cancellation, WF-4b No-Show**
 - [ ] Step 1 remove-from-workflow: keep `a6767d56` (WF-3 Reminders) and **add** Call Lead + Quote Lead
@@ -88,30 +91,30 @@ Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md
 **WF-6 Karbon**
 - [ ] Add second trigger: Pipeline Stage Changed → Paid Ads / **Purchased // Awaiting Work Creation** `092643df…`
 
-**WF-7b Call Outcome**
-- [ ] Add trigger/branch: Call Outcome = **Meeting Held** → Update appointment status **Showed** → Add tag `call completed` → set `call_completed_date` = `{{right_now.date}}`
+**WF-7b Call Outcome** — done as a separate **WF-7c** (Meeting Held → Showed) + new **Call Held** workflow (Appointment Status Showed → tag `call completed` + `Call Completed Date`, once per contact)
+- [x] Add trigger/branch: Call Outcome = **Meeting Held** → Update appointment status **Showed** → Add tag `call completed` → set `call_completed_date` = `{{right_now.date}}`
 
 **WF-1**
-- [ ] Unpublish (don't delete until Part G passes)
+- [x] Unpublish (don't delete until Part G passes)
 
 ## F. App changes (Spencer / Claude)
 
-- [ ] `route.ts`: path = `qualified ? 'call' : 'quote'`; ignore client `leadPath` for tagging; 400 if any bracket missing
-- [ ] `route.ts`: fire the webhook to `GHL_WEBHOOK_CALL_LEAD` or `GHL_WEBHOOK_QUOTE_LEAD` based on path (replace the single `GHL_CONTACT_WEBHOOK_URL`); make it `await`ed with the response status logged, not fire-and-forget
-- [ ] Trim the payload: drop `complexityScore` / `complexityTier` / `taxYearsCount` / `chainCount` / `hasPreR2021` and `computeComplexityScore`; keep `contactId`, names, `email`, `phone`, `country`, brackets, `qualified`, `leadPath`, `tags`, `taxYears`, `blockchains`, `hasTaxSoftware`, `taxSoftwareName`, `utmParams`, `ockno_id`
-- [ ] `lib/ghl.ts`: upsert **without** `tags`; then `POST /contacts/{id}/tags` (additive) with `qualified|quote-requested` + `high value|low value` (+ `awesomely`)
-- [ ] `lib/ghl.ts` cleanup: stop writing the non-existent `country`, `utm_*`, `placement`, `site_source_name`, `landing_url`, `gclid`, `fbclid` custom fields (native `country` + `attributionSource` cover them); point `blockchains_used` at existing key `if_no_which_blockchains_have_you_used_from_most_to_least`
-- [ ] Forward `lastName` to `/api/ghl/book`
-- [ ] Update `.env.local.example` + Cloudflare env with the two webhook URLs
-- [ ] `tsc --noEmit`, `next build`
+- [x] `route.ts`: path = `qualified ? 'call' : 'quote'`; ignore client `leadPath` for tagging; 400 if any bracket missing
+- [x] `route.ts`: fire the webhook to `GHL_WEBHOOK_CALL_LEAD` or `GHL_WEBHOOK_QUOTE_LEAD` based on path (replace the single `GHL_CONTACT_WEBHOOK_URL`); make it `await`ed with the response status logged, not fire-and-forget
+- [x] Trim the payload: drop `complexityScore` / `complexityTier` / `taxYearsCount` / `chainCount` / `hasPreR2021` and `computeComplexityScore`; keep `contactId`, names, `email`, `phone`, `country`, brackets, `qualified`, `leadPath`, `tags`, `taxYears`, `blockchains`, `hasTaxSoftware`, `taxSoftwareName`, `utmParams`, `ockno_id`
+- [x] `lib/ghl.ts`: upsert **without** `tags`; then `POST /contacts/{id}/tags` (additive) with `qualified|quote-requested` + `high value|low value` (+ `awesomely`)
+- [x] `lib/ghl.ts` cleanup: stop writing the non-existent `country`, `utm_*`, `placement`, `site_source_name`, `landing_url`, `gclid`, `fbclid` custom fields (native `country` + `attributionSource` cover them); point `blockchains_used` at existing key `if_no_which_blockchains_have_you_used_from_most_to_least`
+- [x] Forward `lastName` to `/api/ghl/book`
+- [x] Update `.env.local.example` + Cloudflare env with the two webhook URLs
+- [x] `tsc --noEmit`, `next build`
 
 ## G. Test on a throwaway contact (before deploy)
 
-- [ ] Call path submit → contact has tags + fields → webhook returns 200 in app logs → Call Lead shows 1 execution → opp at Paid Ads / New Lead with brackets filled
+- [x] Call path submit → contact has tags + fields → webhook returns 200 in app logs → Call Lead shows 1 execution → opp at Paid Ads / New Lead with brackets filled
 - [ ] Book → WF-2 / WF-3 / WF-7a execution logs show a run → opp now in Trent's / Call Booked → Ockno sees it
 - [ ] Wait 10 min → Call Lead ended (Found), no SMS 1 sent
 - [ ] Resubmit same email mid-nurture → no second execution, no second opp, `sms eligible` still on contact
-- [ ] Quote path submit (`$10k – $50k` / `$25k – $100k` / `1,000 – 6,000`) → Quote Lead runs, Call Lead doesn't → opp at Quote Requested → John gets the task
+- [x] Quote path submit (`$10k – $50k` / `$25k – $100k` / `1,000 – 6,000`) → Quote Lead runs, Call Lead doesn't → opp at Quote Requested → John gets the task
 - [ ] Move quote opp to Quote Sent → nurture stops
 - [ ] Set Call Outcome = Meeting Held on a test opp → appointment Showed + `call completed` tag + date
 - [ ] Set Call Outcome = No Show → appointment noshow → WF-4b runs
@@ -119,7 +122,7 @@ Work top to bottom. Nothing goes live until Part G. Reference: [ghl-workflows.md
 
 ## H. Cutover
 
-- [ ] `npm run deploy`
+- [x] `npm run deploy` (2026-08-21, Matt's Cloudflare account)
 - [ ] Watch the first 3 real submissions in Execution Logs
 - [ ] Delete WF-1 after one clean week
-- [ ] Smart list "Calls completed" = tag `call completed` (+ date range) — this is the metric
+- [x] Smart list "Calls completed" = tag `call completed` (+ date range) — this is the metric
