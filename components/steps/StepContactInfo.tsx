@@ -117,7 +117,7 @@ export default function StepContactInfo({
     if (phoneDigits) {
       const fullPhone = `${dialCode}${phoneDigits}`;
       if (!isValidPhone(fullPhone)) {
-        setPhoneError('Please enter a valid phone number');
+        setPhoneError('Please enter a valid phone number for the country code');
         valid = false;
       } else {
         setPhoneError('');

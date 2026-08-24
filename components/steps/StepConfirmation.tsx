@@ -84,7 +84,7 @@ export default function StepConfirmation({
       setPhoneError('Please enter your phone number');
       valid = false;
     } else if (!isValidPhone(fullPhone)) {
-      setPhoneError('Please enter a valid phone number');
+      setPhoneError('Please enter a valid phone number for your country');
       valid = false;
     } else {
       setPhoneError('');

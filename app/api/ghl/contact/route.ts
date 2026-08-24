@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createOrUpdateContact, updateContact, addContactTags } from '@/lib/ghl';
 import { isValidEmail, sanitize, isHoneypotFilled } from '@/lib/validation';
+// Full metadata: validates area-code patterns, not just digit counts. Server-only
+// so the ~150KB metadata never ships to the browser (the client uses /min).
+import { isValidPhoneNumber } from 'libphonenumber-js/max';
 import { UTMParams, LeadPath } from '@/types/survey';
 import { isQualified } from '@/lib/qualification';
 import { GAINS_BRACKETS, PORTFOLIO_BRACKETS, TRANSACTION_BRACKETS } from '@/lib/constants';
@@ -30,6 +33,16 @@ function checkRateLimit(ip: string): boolean {
 
 function getIP(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+}
+
+/** E.164 string ("+61412345678") whose number is valid for its dial code's country. */
+function isValidPhone(phone: string): boolean {
+  if (!phone.startsWith('+')) return false;
+  try {
+    return isValidPhoneNumber(phone);
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -68,6 +81,12 @@ export async function POST(req: NextRequest) {
     }
     if (!email || !isValidEmail(email)) {
       return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
+    }
+    if (phone && (typeof phone !== 'string' || !isValidPhone(phone))) {
+      return NextResponse.json(
+        { error: 'Please enter a valid phone number for your country' },
+        { status: 400 }
+      );
     }
 
     if (isHoneypotFilled(body.honeypot)) {
@@ -169,7 +188,15 @@ export async function PUT(req: NextRequest) {
 
     const updates: { lastName?: string; phone?: string; utmParams?: UTMParams } = {};
     if (lastName && typeof lastName === 'string') updates.lastName = sanitize(lastName);
-    if (phone && typeof phone === 'string') updates.phone = sanitize(phone);
+    if (phone) {
+      if (typeof phone !== 'string' || !isValidPhone(phone)) {
+        return NextResponse.json(
+          { error: 'Please enter a valid phone number for your country' },
+          { status: 400 }
+        );
+      }
+      updates.phone = sanitize(phone);
+    }
     if (utmParams && typeof utmParams === 'object') updates.utmParams = utmParams;
 
     await updateContact(contactId, updates);
