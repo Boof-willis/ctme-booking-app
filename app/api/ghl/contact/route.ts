@@ -35,6 +35,30 @@ function getIP(req: NextRequest): string {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 }
 
+/**
+ * Ad-platform tags derived from tracking params. Click IDs are definitive
+ * (gclid = Google Ads, fbclid = Meta); placement / site_source_name are
+ * Meta-only URL macros; utm_source catches templates without a click ID.
+ */
+function adPlatformTags(utm: UTMParams): string[] {
+  const tags: string[] = [];
+  const source = (utm.utm_source || '').toLowerCase();
+
+  if (utm.gclid || source.includes('google')) {
+    tags.push('google ads');
+  }
+  if (
+    utm.fbclid ||
+    utm.placement ||
+    utm.site_source_name ||
+    ['facebook', 'meta', 'instagram', 'fb', 'ig'].some((s) => source.includes(s))
+  ) {
+    tags.push('meta ads');
+  }
+
+  return tags;
+}
+
 /** E.164 string ("+61412345678") whose number is valid for its dial code's country. */
 function isValidPhone(phone: string): boolean {
   if (!phone.startsWith('+')) return false;
@@ -75,6 +99,7 @@ export async function POST(req: NextRequest) {
     // Descriptive tags (permanent record of the path) + workflow-trigger tags.
     tagList.push(qualified ? 'qualified' : 'quote-requested');
     tagList.push(qualified ? 'high value' : 'low value');
+    tagList.push(...adPlatformTags(surveyData?.utmParams || {}));
 
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length === 0) {
       return NextResponse.json({ error: 'First name is required' }, { status: 400 });
