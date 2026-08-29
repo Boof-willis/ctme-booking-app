@@ -49,7 +49,7 @@ const FAQS: FaqItem[] = [
   },
   {
     question: "How long does the process take?",
-    answer: "It depends on the complexity of your situation, but the typical timeline is 1-3 weeks from when you grant us access. We always deliver well before tax deadlines when you start early. During peak season (January through April for US clients), we recommend getting started as early as possible to secure your spot."
+    answer: "It depends on how complex your situation is: how many wallets and chains are involved, how many tax years, and how much of the history has to be rebuilt from scratch. We scope the timeline with you on the call, before you commit to anything. During peak season (January through April for US clients), we recommend getting started as early as possible to secure your spot."
   },
   {
     question: "What types of crypto activity do you cover?",

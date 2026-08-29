@@ -1,14 +1,15 @@
 import { ConsultationLink } from '@/components/ui/ConsultationLink';
 import { SeasonalBanner } from '@/components/sections/SeasonalBanner';
+import { MINIMUM_ENGAGEMENT_USD } from '@/lib/constants';
 
 export type HeroVariant = 'master' | 'near-me';
 
 const VARIANTS = {
   master: {
-    eyebrow: '> Crypto Tax Accountants · We Work Remotely, US-Wide',
+    eyebrow: '> Remote crypto tax accountants. We work with clients in all 50 states.',
     headline: (
       <>
-        Crypto Accountants Who<br />Actually Read the Chain.
+        Crypto Tax Accountants Who<br className="hidden sm:block" /> Actually Read the Chain.
       </>
     ),
     body: (
@@ -17,6 +18,13 @@ const VARIANTS = {
         number, Awaken says another, and two wallets are missing. We rebuild the history
         from the chain, correct the cost basis, and hand back numbers that are ready to
         file. Flat-rate pricing. Starts with a free 15-minute call.
+      </>
+    ),
+    remoteNote: (
+      <>
+        No local crypto CPA? You don&apos;t need one. Everything happens over a call and
+        inside secure practice management software, the same way we have done it for 737+
+        clients.
       </>
     ),
   },
@@ -35,6 +43,7 @@ const VARIANTS = {
         generalist who has never seen a liquidity pool. Starts with a free 15-minute call.
       </>
     ),
+    remoteNote: null,
   },
 } as const;
 
@@ -70,9 +79,19 @@ export function Hero({ variant = 'master' }: { variant?: HeroVariant }) {
         </div>
 
         {/* Group 3: Main body paragraph */}
-        <p className="text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto mb-8 leading-relaxed">
+        <p className={`text-base sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed ${copy.remoteNote ? 'mb-4' : 'mb-8'}`}>
           {copy.body}
         </p>
+
+        {/*
+          Answers "is there a crypto tax accountant near me" above the fold, so the
+          local-office objection is handled before any scrolling.
+        */}
+        {copy.remoteNote && (
+          <p className="text-sm sm:text-base text-zinc-500 max-w-2xl mx-auto mb-8 leading-relaxed">
+            {copy.remoteNote}
+          </p>
+        )}
 
         {/* Group 4: Trust metrics + Buttons */}
         <div className="flex flex-col items-center w-full">
@@ -104,6 +123,16 @@ export function Hero({ variant = 'master' }: { variant?: HeroVariant }) {
               <span className="relative z-10 transition-transform duration-300">See How It Works</span>
             </a>
           </div>
+
+          {/*
+            Price floor surfaced from the FAQ's "What does it cost to get started?"
+            answer. Deliberate lead qualification: at paid-search click costs we want
+            fewer, better-fit bookings rather than more of them.
+          */}
+          <p className="font-mono text-xs sm:text-sm text-zinc-400 mt-4 max-w-xl leading-relaxed">
+            Flat-rate quotes, given before you commit. Our done-for-you service starts at
+            a ${MINIMUM_ENGAGEMENT_USD.toLocaleString()} minimum engagement.
+          </p>
 
           {/*
             Stays neutral on who files. Per ctme-ad-scripts-batch1.md, CTME can file

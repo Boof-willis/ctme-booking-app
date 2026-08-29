@@ -1,6 +1,14 @@
 import { ConsultationLink } from '@/components/ui/ConsultationLink';
 
 export function HowItWorks() {
+  /**
+   * The badge under each step number is a key fact about that step, not a clock.
+   *
+   * We make no turnaround promises: nothing attests to a delivery SLA, and every
+   * step after the call depends on our own queue and on how fast the client answers
+   * questions. Step 01 keeps a duration because the consultation is a scheduled
+   * 15-minute call, which is a commitment we control and the visitor books.
+   */
   const steps = [
     {
       num: "01",
@@ -10,19 +18,19 @@ export function HowItWorks() {
     },
     {
       num: "02",
-      time: "~24 hrs",
+      time: "Flat rate",
       title: "Connect & Quote",
       desc: "Connect your wallets and exchanges to our recommended crypto tax software and grant us accountant-level access. Our team reviews your data and sends one flat, all-in price. No hourly billing. No surprise invoices."
     },
     {
       num: "03",
-      time: "~1-2 weeks",
+      time: "Line by line",
       title: "Specialist Reconciliation",
       desc: "A trained crypto tax specialist manually reconciles every transaction using our proprietary process. DeFi, NFTs, multi-chain, perps, airdrops. Everything."
     },
     {
       num: "04",
-      time: "Same day",
+      time: "Ready to file",
       title: "Audit-Ready Report",
       desc: "You receive a clean report your CPA can plug directly into your return. We support your CPA if they have questions. You're done."
     }
