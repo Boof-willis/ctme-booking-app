@@ -8,6 +8,7 @@ import { CalendarSlot } from '@/types/survey';
 import { parseUTMParams } from '@/lib/utm';
 import { UTMParams } from '@/types/survey';
 import { trackAppointmentBooked } from '@/lib/tracking';
+import { isValidEmail, isValidPhone } from '@/lib/validation';
 
 function BookingFlowInner() {
   const searchParams = useSearchParams();
@@ -17,6 +18,9 @@ function BookingFlowInner() {
   const [lastName, setLastName] = useState(() => searchParams.get('lastName') || '');
   const [email, setEmail] = useState(() => searchParams.get('email') || '');
   const [phone, setPhone] = useState(() => searchParams.get('phone') || '');
+  // Email identifies the contact in GHL, so it stays locked when the link
+  // supplied a valid one; otherwise the visitor must fill it in.
+  const [emailLocked] = useState(() => isValidEmail((searchParams.get('email') || '').trim()));
 
   const [selectedSlot, setSelectedSlot] = useState<CalendarSlot | null>(null);
   const [timezone, setTimezone] = useState('America/Denver');
@@ -43,6 +47,7 @@ function BookingFlowInner() {
     try {
       const trimmedFirstName = firstName.trim();
       const trimmedLastName = lastName.trim();
+      const trimmedEmail = email.trim();
       const trimmedPhone = phone.trim();
 
       if (!trimmedFirstName) {
@@ -50,16 +55,48 @@ function BookingFlowInner() {
         setIsBooking(false);
         return;
       }
+      if (!trimmedLastName) {
+        setBookingError('Last name is required.');
+        setIsBooking(false);
+        return;
+      }
+      if (!trimmedEmail) {
+        setBookingError('Email is required.');
+        setIsBooking(false);
+        return;
+      }
+      if (!isValidEmail(trimmedEmail)) {
+        setBookingError('Please enter a valid email address.');
+        setIsBooking(false);
+        return;
+      }
+
+      let normalizedPhone = trimmedPhone.replace(/[\s().-]/g, '');
+      if (normalizedPhone && !normalizedPhone.startsWith('+') && isValidPhone(`+${normalizedPhone}`)) {
+        normalizedPhone = `+${normalizedPhone}`;
+      }
+      if (!normalizedPhone) {
+        setBookingError('Phone number is required.');
+        setIsBooking(false);
+        return;
+      }
+      if (!isValidPhone(normalizedPhone)) {
+        setBookingError('Please enter a valid phone number including your country code (e.g. +1).');
+        setIsBooking(false);
+        return;
+      }
 
       const hasEdits =
         trimmedFirstName !== (searchParams.get('firstName') || '') ||
         trimmedLastName !== (searchParams.get('lastName') || '') ||
-        trimmedPhone !== (searchParams.get('phone') || '');
+        (!emailLocked && trimmedEmail !== (searchParams.get('email') || '')) ||
+        normalizedPhone !== (searchParams.get('phone') || '');
 
       if (hasEdits) {
         const updates: Record<string, unknown> = { contactId };
         if (trimmedLastName) updates.lastName = trimmedLastName;
-        if (trimmedPhone) updates.phone = trimmedPhone;
+        if (!emailLocked) updates.email = trimmedEmail;
+        updates.phone = normalizedPhone;
         if (Object.keys(utmParams).length > 0) updates.utmParams = utmParams;
 
         const updateRes = await fetch('/api/ghl/contact', {
@@ -96,7 +133,7 @@ function BookingFlowInner() {
     } finally {
       setIsBooking(false);
     }
-  }, [contactId, selectedSlot, timezone, firstName, lastName, phone, searchParams, utmParams]);
+  }, [contactId, selectedSlot, timezone, firstName, lastName, email, emailLocked, phone, searchParams, utmParams]);
 
   if (!contactId) {
     return (
@@ -195,7 +232,7 @@ function BookingFlowInner() {
           </div>
           <div>
             <label htmlFor="bf-last" className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1.5">
-              Last name
+              Last name *
             </label>
             <input
               id="bf-last"
@@ -210,20 +247,31 @@ function BookingFlowInner() {
 
         <div>
           <label htmlFor="bf-email" className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1.5">
-            Email
+            Email *
           </label>
-          <input
-            id="bf-email"
-            type="email"
-            value={email}
-            disabled
-            className="w-full rounded-none border border-zinc-800 bg-black/50 px-3 py-2.5 text-sm text-zinc-500 font-mono cursor-not-allowed"
-          />
+          {emailLocked ? (
+            <input
+              id="bf-email"
+              type="email"
+              value={email}
+              disabled
+              className="w-full rounded-none border border-zinc-800 bg-black/50 px-3 py-2.5 text-sm text-zinc-500 font-mono cursor-not-allowed"
+            />
+          ) : (
+            <input
+              id="bf-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-none border border-zinc-800 bg-black px-3 py-2.5 text-sm text-white placeholder-zinc-600 font-mono focus:border-[#beb086] focus:outline-none transition-colors"
+              placeholder="you@example.com"
+            />
+          )}
         </div>
 
         <div>
           <label htmlFor="bf-phone" className="block text-xs font-mono uppercase tracking-wider text-zinc-500 mb-1.5">
-            Phone
+            Phone *
           </label>
           <input
             id="bf-phone"

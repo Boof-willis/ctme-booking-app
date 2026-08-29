@@ -205,14 +205,23 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { contactId, lastName, phone, utmParams } = body;
+    const { contactId, lastName, email, phone, utmParams } = body;
 
     if (!contactId || typeof contactId !== 'string') {
       return NextResponse.json({ error: 'Contact ID is required' }, { status: 400 });
     }
 
-    const updates: { lastName?: string; phone?: string; utmParams?: UTMParams } = {};
+    const updates: { lastName?: string; email?: string; phone?: string; utmParams?: UTMParams } = {};
     if (lastName && typeof lastName === 'string') updates.lastName = sanitize(lastName);
+    if (email) {
+      if (typeof email !== 'string' || !isValidEmail(email.trim())) {
+        return NextResponse.json(
+          { error: 'Please enter a valid email address' },
+          { status: 400 }
+        );
+      }
+      updates.email = sanitize(email);
+    }
     if (phone) {
       if (typeof phone !== 'string' || !isValidPhone(phone)) {
         return NextResponse.json(

@@ -155,12 +155,13 @@ export async function addContactTags(contactId: string, tags: string[]): Promise
 
 export async function updateContact(
   contactId: string,
-  updates: { lastName?: string; phone?: string; utmParams?: UTMParams }
+  updates: { lastName?: string; email?: string; phone?: string; utmParams?: UTMParams }
 ): Promise<void> {
-  const { lastName, phone, utmParams } = updates;
+  const { lastName, email, phone, utmParams } = updates;
 
   const body: Record<string, unknown> = {};
   if (lastName) body.lastName = lastName;
+  if (email) body.email = email;
   if (phone) body.phone = phone;
 
   if (utmParams && Object.keys(utmParams).length > 0) {
