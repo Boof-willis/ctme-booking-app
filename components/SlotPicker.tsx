@@ -17,8 +17,6 @@ interface SlotPickerProps {
   onAcknowledgeMinimum?: (checked: boolean) => void;
 }
 
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
 const TIMEZONE_OPTIONS: { value: string; label: string }[] = [
   { value: 'Pacific/Honolulu', label: 'Hawaii (HT)' },
   { value: 'America/Anchorage', label: 'Alaska (AKT)' },
@@ -40,16 +38,16 @@ function toDateKey(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function getBusinessDayLimit(businessDays: number): Date {
+function getNextBusinessDays(count: number): string[] {
+  const keys: string[] = [];
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  let count = 0;
-  while (count < businessDays) {
-    d.setDate(d.getDate() + 1);
+  while (keys.length < count) {
     const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) count++;
+    if (dow !== 0 && dow !== 6) keys.push(toDateKey(d));
+    d.setDate(d.getDate() + 1);
   }
-  return d;
+  return keys;
 }
 
 function formatTime(isoString: string, tz: string): string {
@@ -81,6 +79,14 @@ function formatSelectedDate(dateStr: string): string {
   });
 }
 
+function formatDayLabel(dateStr: string): { weekday: string; date: string } {
+  const d = new Date(dateStr + 'T00:00:00');
+  return {
+    weekday: d.toLocaleDateString('en-US', { weekday: 'short' }),
+    date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+  };
+}
+
 export default function SlotPicker({
   calendarTimezone,
   onSelect,
@@ -100,10 +106,6 @@ export default function SlotPicker({
   const [displayTimezone, setDisplayTimezone] = useState(calendarTimezone);
   const [tzPickerOpen, setTzPickerOpen] = useState(false);
   const tzRef = useRef<HTMLDivElement>(null);
-  const [viewMonth, setViewMonth] = useState(() => {
-    const now = new Date();
-    return { year: now.getFullYear(), month: now.getMonth() };
-  });
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -123,17 +125,17 @@ export default function SlotPicker({
     return d;
   }, []);
 
-  const maxDate = useMemo(() => getBusinessDayLimit(5), []);
+  const businessDayKeys = useMemo(() => getNextBusinessDays(3), []);
 
   const todayKey = toDateKey(today);
-  const maxDateKey = toDateKey(maxDate);
+  const maxDateKey = businessDayKeys[businessDayKeys.length - 1];
 
   const fetchSlots = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const startDate = toDateKey(today);
-      const end = new Date(maxDate);
+      const startDate = todayKey;
+      const end = new Date(maxDateKey + 'T00:00:00');
       end.setDate(end.getDate() + 1);
       const endDate = toDateKey(end);
 
@@ -162,64 +164,23 @@ export default function SlotPicker({
     } finally {
       setLoading(false);
     }
-  }, [calendarTimezone, today, maxDate, todayKey, maxDateKey]);
+  }, [calendarTimezone, todayKey, maxDateKey]);
 
   useEffect(() => {
     fetchSlots();
   }, [fetchSlots]);
-
-  const availableDates = useMemo(
-    () => new Set(days.map((d) => d.date)),
-    [days]
-  );
 
   const slotsForSelectedDate = useMemo(
     () => days.find((d) => d.date === selectedDate)?.slots || [],
     [days, selectedDate]
   );
 
-  const calendarGrid = useMemo(() => {
-    const { year, month } = viewMonth;
-    const firstOfMonth = new Date(year, month, 1);
-    const startDow = firstOfMonth.getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    const cells: Array<{ date: Date; key: string; inMonth: boolean } | null> = [];
-
-    for (let i = 0; i < startDow; i++) cells.push(null);
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(year, month, d);
-      cells.push({ date, key: toDateKey(date), inMonth: true });
+  // Auto-select the first available day so the next open times show immediately.
+  useEffect(() => {
+    if (!loading && days.length > 0 && !selectedDate) {
+      setSelectedDate(days[0].date);
     }
-
-    return cells;
-  }, [viewMonth]);
-
-  const monthLabel = new Date(viewMonth.year, viewMonth.month).toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric',
-  });
-
-  const canGoPrev = (() => {
-    const prev = new Date(viewMonth.year, viewMonth.month - 1, 1);
-    const cur = new Date(today.getFullYear(), today.getMonth(), 1);
-    return prev >= cur;
-  })();
-
-  const canGoNext = (() => {
-    const nextStart = new Date(viewMonth.year, viewMonth.month + 1, 1);
-    return nextStart <= maxDate;
-  })();
-
-  const navigateMonth = (dir: -1 | 1) => {
-    setViewMonth((prev) => {
-      let m = prev.month + dir;
-      let y = prev.year;
-      if (m < 0) { m = 11; y--; }
-      if (m > 11) { m = 0; y++; }
-      return { year: y, month: m };
-    });
-  };
+  }, [loading, days, selectedDate]);
 
   const handleDateClick = (dateKey: string) => {
     setSelectedDate(dateKey);
@@ -308,93 +269,65 @@ export default function SlotPicker({
         </AnimatePresence>
       </div>
 
-      {/* Month calendar */}
+      {/* Available days */}
       {loading ? (
-        <div className="animate-pulse space-y-3">
-          <div className="h-6 w-40 bg-white/[0.06] rounded mx-auto" />
-          <div className="grid grid-cols-7 gap-1">
-            {[...Array(35)].map((_, i) => (
-              <div key={i} className="h-10 bg-white/[0.06] rounded-lg" />
-            ))}
-          </div>
+        <div className="animate-pulse flex gap-2">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-14 flex-1 bg-white/[0.06]" />
+          ))}
         </div>
       ) : (
         <div>
-          {/* Month header */}
-          <div className="flex items-center justify-between mb-4">
-            <button
-              type="button"
-              onClick={() => navigateMonth(-1)}
-              disabled={!canGoPrev}
-              className="p-1.5 rounded-none text-zinc-500 hover:text-[#beb086] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
-              aria-label="Previous month"
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter"/>
-              </svg>
-            </button>
-            <span className="text-sm font-bold font-mono text-white tracking-wider uppercase">[{monthLabel}]</span>
-            <button
-              type="button"
-              onClick={() => navigateMonth(1)}
-              disabled={!canGoNext}
-              className="p-1.5 rounded-none text-zinc-500 hover:text-[#beb086] disabled:opacity-0 disabled:pointer-events-none transition-colors cursor-pointer"
-              aria-label="Next month"
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Weekday headers */}
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {WEEKDAY_LABELS.map((label) => (
-              <div key={label} className="text-center text-xs font-mono font-bold text-zinc-600 py-1 uppercase tracking-wider">
-                {label}
-              </div>
-            ))}
-          </div>
-
-          {/* Day cells */}
-          <div className="grid grid-cols-7 gap-1">
-            {calendarGrid.map((cell, i) => {
-              if (!cell) return <div key={`empty-${i}`} />;
-
-              const isAvailable = availableDates.has(cell.key);
-              const isInRange = cell.key >= todayKey && cell.key <= maxDateKey;
-              const isSelected = cell.key === selectedDate;
-              const isToday = cell.key === todayKey;
-              const isDisabled = !isAvailable || !isInRange;
+          <div className="flex gap-2">
+            {businessDayKeys.map((key) => {
+              const dayData = days.find((d) => d.date === key);
+              const hasSlots = Boolean(dayData);
+              const isSelected = key === selectedDate;
+              const isToday = key === todayKey;
+              const label = formatDayLabel(key);
 
               return (
                 <button
-                  key={cell.key}
+                  key={key}
                   type="button"
-                  disabled={isDisabled}
-                  onClick={() => handleDateClick(cell.key)}
+                  disabled={!hasSlots}
+                  onClick={() => handleDateClick(key)}
                   className={`
-                    relative h-10 rounded-none text-sm font-mono transition-all cursor-pointer
+                    flex-1 rounded-none border px-2 py-2.5 font-mono transition-colors
                     focus:outline-none focus-visible:ring-1 focus-visible:ring-[#beb086]
                     ${isSelected
-                      ? 'bg-[#beb086] text-black font-bold'
-                      : isAvailable && isInRange
-                        ? 'text-zinc-400 hover:bg-zinc-900 hover:text-white'
-                        : 'text-zinc-700 cursor-default'
+                      ? 'border-[#beb086] bg-[#beb086] text-black cursor-pointer'
+                      : hasSlots
+                        ? 'border-zinc-800 bg-black text-zinc-400 hover:border-[#beb086] hover:text-white cursor-pointer'
+                        : 'border-zinc-900 bg-black text-zinc-700 cursor-default'
                     }
                   `}
+                  aria-pressed={isSelected}
                 >
-                  {cell.date.getDate()}
-                  {isToday && !isSelected && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-none bg-[#beb086]" />
-                  )}
-                  {isAvailable && isInRange && !isSelected && (
-                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-none bg-emerald-500/50" />
-                  )}
+                  <span className={`block text-xs uppercase tracking-wider ${isSelected ? 'text-black/70' : hasSlots ? 'text-zinc-600' : 'text-zinc-700'}`}>
+                    {isToday ? 'Today' : label.weekday}
+                  </span>
+                  <span className="block text-sm font-bold mt-0.5">{label.date}</span>
+                  <span className={`block text-[10px] uppercase tracking-wider mt-0.5 ${isSelected ? 'text-black/70' : hasSlots ? 'text-zinc-600' : 'text-zinc-700'}`}>
+                    {hasSlots ? `${dayData!.slots.length} open` : 'Full'}
+                  </span>
                 </button>
               );
             })}
           </div>
+
+          {days.length === 0 && (
+            <div className="text-center py-6">
+              <p className="text-zinc-400 mb-2">All times in the next few days are booked.</p>
+              <p className="text-zinc-500 text-sm">
+                Email us at{' '}
+                <a href={`mailto:${FALLBACK_EMAIL}`} className="text-cyan-400 hover:underline">
+                  {FALLBACK_EMAIL}
+                </a>{' '}
+                and we&apos;ll get you booked.
+              </p>
+            </div>
+          )}
         </div>
       )}
 
