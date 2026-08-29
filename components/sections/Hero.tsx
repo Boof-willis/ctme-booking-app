@@ -23,7 +23,7 @@ const VARIANTS = {
     remoteNote: (
       <>
         No local crypto CPA? You don&apos;t need one. Everything happens over a call and
-        inside secure practice management software, the same way we have done it for 737+
+        inside secure practice management software, the same as we&apos;ve done for 737+
         clients.
       </>
     ),
@@ -130,8 +130,8 @@ export function Hero({ variant = 'master' }: { variant?: HeroVariant }) {
             fewer, better-fit bookings rather than more of them.
           */}
           <p className="font-mono text-xs sm:text-sm text-zinc-400 mt-4 max-w-xl leading-relaxed">
-            Flat-rate quotes, given before you commit. Our done-for-you service starts at
-            a ${MINIMUM_ENGAGEMENT_USD.toLocaleString()} minimum engagement.
+            You get a flat-rate quote before you commit. Our done-for-you service has a
+            ${MINIMUM_ENGAGEMENT_USD.toLocaleString()} minimum engagement.
           </p>
 
           {/*
