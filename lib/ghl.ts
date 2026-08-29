@@ -214,6 +214,43 @@ export async function updateContact(
   }
 }
 
+// The calendar's appointment length is set in GHL and can change without a
+// deploy; bookings are rejected unless endTime matches it exactly, so read it
+// from the calendar (cached briefly) instead of assuming a length.
+let cachedSlotDuration: { ms: number; fetchedAt: number } | null = null;
+const SLOT_DURATION_TTL_MS = 5 * 60 * 1000;
+const DEFAULT_SLOT_DURATION_MS = 30 * 60 * 1000;
+
+export async function getCalendarSlotDurationMs(): Promise<number> {
+  const now = Date.now();
+  if (cachedSlotDuration && now - cachedSlotDuration.fetchedAt < SLOT_DURATION_TTL_MS) {
+    return cachedSlotDuration.ms;
+  }
+
+  try {
+    const res = await fetch(`${GHL_BASE}/calendars/${process.env.GHL_CALENDAR_ID}`, {
+      headers: getHeaders(),
+    });
+    if (!res.ok) throw new Error(`GHL calendar fetch failed: ${res.status}`);
+
+    const data = (await res.json()) as {
+      calendar?: { slotDuration?: number; slotDurationUnit?: string };
+    };
+    const duration = data.calendar?.slotDuration;
+    const unit = data.calendar?.slotDurationUnit;
+    if (typeof duration !== 'number' || duration <= 0) {
+      throw new Error('GHL calendar response missing slotDuration');
+    }
+
+    const ms = duration * (unit === 'hours' ? 3_600_000 : 60_000);
+    cachedSlotDuration = { ms, fetchedAt: now };
+    return ms;
+  } catch (err) {
+    console.error('GHL calendar duration fetch error:', err);
+    return cachedSlotDuration?.ms ?? DEFAULT_SLOT_DURATION_MS;
+  }
+}
+
 export async function fetchAvailableSlots(
   startDate: string,
   endDate: string,

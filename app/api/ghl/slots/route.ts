@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { fetchAvailableSlots } from '@/lib/ghl';
+import { fetchAvailableSlots, getCalendarSlotDurationMs } from '@/lib/ghl';
 
 const rateLimit = new Map<string, { count: number; resetAt: number }>();
 
@@ -53,11 +53,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Valid timezone is required' }, { status: 400 });
     }
 
-    const raw = await fetchAvailableSlots(startDate, endDate, timezone);
+    const [raw, SLOT_DURATION_MS] = await Promise.all([
+      fetchAvailableSlots(startDate, endDate, timezone),
+      getCalendarSlotDurationMs(),
+    ]);
 
     // GHL v1 returns { "YYYY-MM-DD": { slots: ["ISO-string", ...] } }
     // Normalize to { "YYYY-MM-DD": { slots: [{ startTime, endTime }, ...] } }
-    const SLOT_DURATION_MS = 30 * 60 * 1000;
     const normalized: Record<string, { slots: Array<{ startTime: string; endTime: string }> }> = {};
 
     if (raw && typeof raw === 'object') {
